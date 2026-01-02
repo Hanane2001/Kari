@@ -5,10 +5,10 @@ class Database{
     private const DB_USER = 'root';
     private const DB_PASS = '';
     private const DB_NAME = 'kari';
-    private static $instance = null;
+    public static ?Database $instance;
     private $pdo;
 
-    public function __construct(){
+    private function __construct(){
         try {
             $dsn = "mysql:host=" . self::DB_HOST . ";dbname=" . self::DB_NAME . ";charset=utf8mb4";
             $this->pdo = new PDO($dsn, self::DB_USER, self::DB_PASS);
@@ -20,18 +20,14 @@ class Database{
     }
 
     public static function getInstance(){
-        if (self::$instance === null) {
-            self::$instance = new Database();
+        if (!self::$instance) {
+            self::$instance = new self();
         }
         return self::$instance;
     }
     
     public function getConnection(){
         return $this->pdo;
-    }
-    
-    public static function closeConnection(){
-        self::$instance = null;
     }
 }
 ?>
