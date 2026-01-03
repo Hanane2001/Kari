@@ -11,7 +11,7 @@ CREATE TABLE users (
     location VARCHAR(50) not null,
     role ENUM('voyageur', 'hote', 'admin') DEFAULT 'voyageur',
     is_active BOOLEAN DEFAULT TRUE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE logement (

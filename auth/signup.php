@@ -3,222 +3,256 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up | StayEasy</title>
+    <title>StayEase - Create Account</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../assets/css/styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="https://img.icons8.com/color/96/000000/beach-house.png">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .form-bg { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .card-shadow {
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .input-focus:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .role-selected {
+            border-color: #667eea;
+            background-color: rgba(102, 126, 234, 0.05);
+        }
+    </style>
 </head>
-<body class="font-poppins bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-md">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <i class="fas fa-home text-2xl text-blue-600"></i>
-                <a href="../index.php" class="text-2xl font-bold text-gray-800">StayEasy</a>
+<body class="bg-gray-50">
+    <div class="form-bg flex items-center justify-center p-4">
+        <div class="w-full max-w-4xl mx-auto">
+            <div class="mb-8">
+                <a href="../index.php" class="inline-flex items-center text-white hover:text-gray-200 transition">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Home
+                </a>
             </div>
             
-            <div class="flex items-center space-x-4">
-                <a href="../index.php" class="text-gray-700 hover:text-blue-600">Home</a>
-                <a href="login.php" class="text-gray-700 hover:text-blue-600">Log in</a>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Signup Section -->
-    <section class="min-h-screen flex items-center justify-center py-12">
-        <div class="w-full max-w-4xl">
-            <div class="text-center mb-10">
-                <h1 class="text-3xl font-bold text-gray-800 mb-2">Join StayEasy Today</h1>
-                <p class="text-gray-600 max-w-2xl mx-auto">Create your free account and start exploring unique accommodations or listing your property for short-term rentals.</p>
-            </div>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Left Column: Account Type Selection -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white rounded-xl shadow-lg p-6 sticky top-6">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-6">Choose Your Account Type</h3>
-                        
-                        <div class="space-y-4">
-                            <!-- Traveler Option -->
-                            <div class="account-type-option border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-blue-400 transition duration-300" data-account-type="traveler">
-                                <div class="flex items-start">
-                                    <div class="bg-blue-100 p-2 rounded-md mr-4">
-                                        <i class="fas fa-user text-blue-600"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-medium text-gray-800">Traveler</h4>
-                                        <p class="text-gray-600 text-sm mt-1">I want to find and book unique accommodations for my trips.</p>
-                                    </div>
-                                </div>
-                                <div class="mt-4 hidden" id="traveler-benefits">
-                                    <ul class="space-y-2 text-sm text-gray-600">
-                                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Search & book rentals</li>
-                                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Save favorites</li>
-                                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Leave reviews</li>
-                                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Message hosts</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            
-                            <!-- Host Option -->
-                            <div class="account-type-option border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-green-400 transition duration-300" data-account-type="host">
-                                <div class="flex items-start">
-                                    <div class="bg-green-100 p-2 rounded-md mr-4">
-                                        <i class="fas fa-home text-green-600"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-medium text-gray-800">Host</h4>
-                                        <p class="text-gray-600 text-sm mt-1">I want to list my property and earn money from short-term rentals.</p>
-                                    </div>
-                                </div>
-                                <div class="mt-4 hidden" id="host-benefits">
-                                    <ul class="space-y-2 text-sm text-gray-600">
-                                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> List your property</li>
-                                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Manage bookings</li>
-                                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Set your own prices</li>
-                                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Communicate with guests</li>
-                                    </ul>
-                                </div>
-                            </div>
+            <div class="bg-white rounded-3xl overflow-hidden card-shadow">
+                <div class="md:flex">
+                    <div class="md:w-1/2 p-8 md:p-12">
+                        <div class="text-center mb-10">
+                            <a href="index.html" class="inline-flex items-center space-x-2 mb-4">
+                                <i class="fas fa-home text-3xl text-purple-600"></i>
+                                <span class="text-2xl font-bold text-gray-900">Stay<span class="text-purple-600">Ease</span></span>
+                            </a>
+                            <h1 class="text-3xl font-bold text-gray-900">Create Your Account</h1>
+                            <p class="text-gray-600 mt-2">Join our community of travelers and hosts</p>
                         </div>
-                    </div>
-                </div>
-                <div class="lg:col-span-2">
-                    <div class="bg-white rounded-xl shadow-lg p-8">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-6">Create Your Account</h3>
                         
-                        <!-- Signup Form -->
-                        <form id="signupForm" class="space-y-6">
+                        <form id="signupForm" action="#" method="POST" class="space-y-6">
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-envelope mr-2 text-gray-500"></i>Email Address *
+                                </label>
+                                <input type="email" id="email" name="email" required maxlength="180" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition" placeholder="you@example.com">
+                                <p class="text-xs text-gray-500 mt-1">Must be a valid email address</p>
+                            </div>
+                            <div>
+                                <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-lock mr-2 text-gray-500"></i>Password *
+                                </label>
+                                <div class="relative">
+                                    <input type="password" id="password" name="password" required minlength="8" maxlength="255" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition pr-12" placeholder="At least 8 characters">
+                                    <button type="button" id="togglePassword" class="absolute right-4 top-3 text-gray-500">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
+                            </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label for="firstName" class="block text-gray-700 font-medium mb-2">First Name</label>
-                                    <div class="relative">
-                                        <i class="fas fa-user absolute left-3 top-3 text-gray-400"></i>
-                                        <input type="text" id="firstName" name="firstName" required class="pl-10 w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="John">
-                                    </div>
+                                    <label for="first_name" class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-user mr-2 text-gray-500"></i>First Name *
+                                    </label>
+                                    <input type="text" id="first_name" name="first_name" required maxlength="100" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition" placeholder="John">
                                 </div>
                                 
                                 <div>
-                                    <label for="lastName" class="block text-gray-700 font-medium mb-2">Last Name</label>
-                                    <div class="relative">
-                                        <i class="fas fa-user absolute left-3 top-3 text-gray-400"></i>
-                                        <input type="text" id="lastName" name="lastName" required class="pl-10 w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Doe">
-                                    </div>
+                                    <label for="last_name" class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-user mr-2 text-gray-500"></i>Last Name *
+                                    </label>
+                                    <input type="text" id="last_name" name="last_name" required maxlength="100" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition" placeholder="Doe">
                                 </div>
                             </div>
-                            
                             <div>
-                                <label for="signupEmail" class="block text-gray-700 font-medium mb-2">Email Address</label>
-                                <div class="relative">
-                                    <i class="fas fa-envelope absolute left-3 top-3 text-gray-400"></i>
-                                    <input type="email" id="signupEmail" name="email" required class="pl-10 w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="you@example.com">
-                                </div>
+                                <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-phone mr-2 text-gray-500"></i>Phone Number (Optional)
+                                </label>
+                                <input type="tel" id="phone" name="phone" maxlength="20" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition" placeholder="+1 (555) 123-4567">
+                                <p class="text-xs text-gray-500 mt-1">Include country code if international</p>
                             </div>
-                            
                             <div>
-                                <label for="phone" class="block text-gray-700 font-medium mb-2">Phone Number</label>
-                                <div class="relative">
-                                    <i class="fas fa-phone absolute left-3 top-3 text-gray-400"></i>
-                                    <input type="tel" id="phone" name="phone" class="pl-10 w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="+1 (555) 123-4567">
-                                </div>
+                                <label for="location" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-map-marker-alt mr-2 text-gray-500"></i>Location *
+                                </label>
+                                <input type="text" id="location" name="location" required placeholder="Enter your city" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition"/>
                             </div>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label for="signupPassword" class="block text-gray-700 font-medium mb-2">Password</label>
-                                    <div class="relative">
-                                        <i class="fas fa-lock absolute left-3 top-3 text-gray-400"></i>
-                                        <input type="password" id="signupPassword" name="password" required class="pl-10 w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Create a password">
-                                        <button type="button" id="toggleSignupPassword" class="absolute right-3 top-3 text-gray-400 hover:text-gray-600">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-3">
+                                    <i class="fas fa-user-tag mr-2 text-gray-500"></i>Select Your Role
+                                </label>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="roleSelection">
+                                    <div class="role-option cursor-pointer border-2 border-gray-200 rounded-xl p-4 text-center transition hover:border-purple-400" data-role="voyageur">
+                                        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xl mx-auto mb-3">
+                                            <i class="fas fa-suitcase-rolling"></i>
+                                        </div>
+                                        <h3 class="font-bold text-gray-900">Traveler</h3>
+                                        <p class="text-sm text-gray-600 mt-1">Book stays around the world</p>
+                                        <div class="mt-3">
+                                            <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">Default</span>
+                                        </div>
+                                    </div>
+                                    <div class="role-option cursor-pointer border-2 border-gray-200 rounded-xl p-4 text-center transition hover:border-purple-400" data-role="hote">
+                                        <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xl mx-auto mb-3">
+                                            <i class="fas fa-home"></i>
+                                        </div>
+                                        <h3 class="font-bold text-gray-900">Host</h3>
+                                        <p class="text-sm text-gray-600 mt-1">Rent out your property</p>
+                                    </div>
+                                    <div class="role-option cursor-pointer border-2 border-gray-200 rounded-xl p-4 text-center transition hover:border-purple-400 hidden" data-role="admin" id="adminOption">
+                                        <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xl mx-auto mb-3">
+                                            <i class="fas fa-user-cog"></i>
+                                        </div>
+                                        <h3 class="font-bold text-gray-900">Admin</h3>
+                                        <p class="text-sm text-gray-600 mt-1">Platform manage</p>
+                                        <div class="mt-3">
+                                            <span class="inline-block px-3 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">Invite Only</span>
+                                        </div>
                                     </div>
                                 </div>
-                                
-                                <div>
-                                    <label for="confirmPassword" class="block text-gray-700 font-medium mb-2">Confirm Password</label>
-                                    <div class="relative">
-                                        <i class="fas fa-lock absolute left-3 top-3 text-gray-400"></i>
-                                        <input type="password" id="confirmPassword" name="confirmPassword" required class="pl-10 w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Confirm your password">
-                                    </div>
+                                <input type="hidden" id="role" name="role" value="voyageur">
+                                <div id="adminCodeContainer" class="mt-4 hidden">
+                                    <label for="admin_code" class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-key mr-2 text-gray-500"></i>Admin Access Code *
+                                    </label>
+                                    <input type="password" id="admin_code" name="admin_code" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition" placeholder="Enter admin invitation code">
+                                    <p class="text-xs text-gray-500 mt-1">Required for admin role registration</p>
                                 </div>
                             </div>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
-                                <div>
-                                    <label for="city" class="block text-gray-700 font-medium mb-2">City</label>
-                                    <div class="relative">
-                                        <i class="fas fa-map-marker-alt absolute left-3 top-3 text-gray-400"></i>
-                                        <input type="text" id="city" name="city" class="pl-10 w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Your city">
-                                    </div>
-                                </div>
+                            <div class="flex items-start">
+                                <input type="checkbox" id="terms" name="terms" required class="mt-1 mr-3 h-5 w-5 text-purple-600 rounded focus:ring-purple-500">
+                                <label for="terms" class="text-sm text-gray-700">I agree to the <a href="#" class="text-purple-600 hover:text-purple-800 font-medium">Terms of Service</a> and <a href="#" class="text-purple-600 hover:text-purple-800 font-medium">Privacy Policy</a>. I understand that my account will be active by default.</label>
                             </div>
-                            
-                            <!-- Hidden Account Type Field -->
-                            <input type="hidden" id="accountType" name="accountType" value="traveler">
-                            <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-md hover:bg-blue-700 transition duration-300 font-medium">
-                                Create Account
+                            <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold py-4 px-6 rounded-xl hover:from-purple-700 hover:to-blue-700 transition shadow-lg hover:shadow-xl">
+                                <i class="fas fa-user-plus mr-2"></i> Create Account
                             </button>
-                            
-                            <div class="text-center mt-4">
-                                <p class="text-gray-600">Already have an account? <a href="login.html" class="text-blue-600 font-medium hover:text-blue-800">Log in</a></p>
+                            <div class="text-center pt-4">
+                                <p class="text-gray-600">
+                                    Already have an account? 
+                                    <a href="login.html" class="text-purple-600 font-medium hover:text-purple-800">Sign in here</a>
+                                </p>
                             </div>
                         </form>
                     </div>
-                    
-                    <!-- Platform Features -->
-                    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="bg-white p-6 rounded-xl shadow-md">
-                            <div class="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-                                <i class="fas fa-shield-alt text-blue-600 text-xl"></i>
-                            </div>
-                            <h4 class="font-semibold text-gray-800 mb-2">Secure Platform</h4>
-                            <p class="text-gray-600 text-sm">Bank-level security for your personal information and payments.</p>
+                    <div class="md:w-1/2 bg-gradient-to-br from-purple-50 to-blue-50 p-8 md:p-12 flex flex-col justify-center">
+                        <div class="text-center mb-10">
+                            <h2 class="text-2xl font-bold text-gray-900 mb-4">Why Join StayEase?</h2>
+                            <p class="text-gray-700">Become part of our trusted community</p>
                         </div>
                         
-                        <div class="bg-white p-6 rounded-xl shadow-md">
-                            <div class="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-                                <i class="fas fa-headset text-green-600 text-xl"></i>
+                        <div class="space-y-8">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center text-xl mr-4">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-gray-900 mb-1">Secure Platform</h3>
+                                    <p class="text-gray-700">Your data is encrypted and protected with industry-standard security.</p>
+                                </div>
                             </div>
-                            <h4 class="font-semibold text-gray-800 mb-2">24/7 Support</h4>
-                            <p class="text-gray-600 text-sm">Our customer support team is available around the clock to assist you.</p>
-                        </div>
-                        
-                        <div class="bg-white p-6 rounded-xl shadow-md">
-                            <div class="bg-purple-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-                                <i class="fas fa-check-circle text-purple-600 text-xl"></i>
+                            
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl mr-4">
+                                    <i class="fas fa-globe"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-gray-900 mb-1">Global Community</h3>
+                                    <p class="text-gray-700">Connect with travelers and hosts from all around the world.</p>
+                                </div>
                             </div>
-                            <h4 class="font-semibold text-gray-800 mb-2">Verified Users</h4>
-                            <p class="text-gray-600 text-sm">All hosts and guests are verified to ensure a trusted community.</p>
+                            
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center text-xl mr-4">
+                                    <i class="fas fa-handshake"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-gray-900 mb-1">Trust & Verification</h3>
+                                    <p class="text-gray-700">All users are verified to ensure a safe experience for everyone.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 w-12 h-12 bg-yellow-100 text-yellow-600 rounded-xl flex items-center justify-center text-xl mr-4">
+                                    <i class="fas fa-headset"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-gray-900 mb-1">24/7 Support</h3>
+                                    <p class="text-gray-700">Our customer support team is always here to help you.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-8">
-        <div class="container mx-auto px-4 text-center">
-            <div class="flex items-center justify-center space-x-2 mb-6">
-                <i class="fas fa-home text-xl text-blue-400"></i>
-                <span class="text-xl font-bold">StayEasy</span>
-            </div>
-            <p class="text-gray-400 mb-4">Your trusted platform for short-term rentals</p>
-            <div class="flex justify-center space-x-6 mb-6">
-                <a href="#" class="text-gray-400 hover:text-white">Terms</a>
-                <a href="#" class="text-gray-400 hover:text-white">Privacy</a>
-                <a href="#" class="text-gray-400 hover:text-white">Help Center</a>
-                <a href="#" class="text-gray-400 hover:text-white">Contact</a>
-            </div>
-            <p class="text-gray-500 text-sm">&copy; 2026 StayEasy. This is a demonstration interface for a PHP OOP project.</p>
-        </div>
-    </footer>
-
-    <script src="../assets/js/app.js"></script>
+    </div>
+    <script>
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const icon = this.querySelector('i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+        const roleOptions = document.querySelectorAll('.role-option');
+        const roleInput = document.getElementById('role');
+        const adminOption = document.getElementById('adminOption');
+        const adminCodeContainer = document.getElementById('adminCodeContainer');
+        const adminCodeInput = document.getElementById('admin_code');
+        
+        roleOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                roleOptions.forEach(opt => {
+                    opt.classList.remove('role-selected', 'border-purple-600');
+                    opt.classList.add('border-gray-200');
+                });
+                this.classList.remove('border-gray-200');
+                this.classList.add('role-selected', 'border-purple-600');
+                const selectedRole = this.getAttribute('data-role');
+                roleInput.value = selectedRole;
+                if (selectedRole === 'admin') {
+                    adminCodeContainer.classList.remove('hidden');
+                    adminCodeInput.required = true;
+                } else {
+                    adminCodeContainer.classList.add('hidden');
+                    adminCodeInput.required = false;
+                }
+            });
+        });
+        document.querySelector('.role-option[data-role="voyageur"]').classList.add('role-selected', 'border-purple-600');
+        
+        // Show admin option when pressing Ctrl+Shift+A
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+                adminOption.classList.remove('hidden');
+                alert('Admin registration option unlocked!');
+            }
+        });
+    </script>
 </body>
 </html>
