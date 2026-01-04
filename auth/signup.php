@@ -1,5 +1,9 @@
 <?php
+session_start();
+
 if($_SERVER['REQUEST_METHOD'] === 'POST'){
+    require_once __DIR__ . '/../config/Database.php';
+    
     $role = trim($_POST['role'] ?? 'voyageur');
     $firstName = trim($_POST['first_name'] ?? '');
     $lastName = trim($_POST['last_name'] ?? '');
@@ -34,45 +38,61 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
         $errors[] = "Invalid admin access code";
     }
 
+    if (empty($errors)) {
+        try {
+            $db = Database::getInstance()->getConnection();
+            $sql = "SELECT user_id FROM users WHERE email = :email";
+            $stmt = $db->prepare($sql);
+            $stmt->execute([':email' => $email]);
+            
+            if ($stmt->fetch()) {
+                $errors[] = "Email already exists";
+            }
+        } catch (PDOException $e) {
+            $errors[] = "System error. Please try again later.";
+        }
+    }
+
     if (!empty($errors)) {
         $_SESSION['errors'] = $errors;
         header("Location: signup.php");
         exit();
     }
     
+    $id = null;
+    
     switch ($role) {
-
         case 'voyageur':
-            require_once '../classes/Voyageur.php';
+            require_once __DIR__ . '/../classes/Voyageur.php';
             $user = new Voyageur($firstName, $lastName, $email, $phone, $location, $password);
-            $id = $user->getVoyageurId();
+            $id = $user->getId();
             break;
 
         case 'hote':
-            require_once '../classes/Hote.php';
+            require_once __DIR__ . '/../classes/Hote.php';
             $user = new Hote($firstName, $lastName, $email, $phone, $location, $password);
-            $id = $user->getHoteId();
+            $id = $user->getId();
             break;
 
         case 'admin':
-            require_once '../classes/Admin.php';
+            require_once __DIR__ . '/../classes/Admin.php';
             $user = new Admin($firstName, $lastName, $email, $phone, $location, $password);
-            $id = $user->getAdminId();
+            $id = $user->getId();
             break;
 
         default:
             $id = null;
     }
 
-    if ($id !== null) {
+    if ($id !== null && $id !== false) {
         $_SESSION['success_message'] = "Account created successfully! Please login.";
         header("Location: login.php");
         exit();
+    } else {
+        $_SESSION['errors'] = ["Failed to create account. Please try again."];
+        header("Location: signup.php");
+        exit();
     }
-
-    $_SESSION['errors'] = ["Failed to create account. Please try again."];
-    header("Location: signup.php");
-    exit();
 }
 ?>
 <!DOCTYPE html>
@@ -135,13 +155,19 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
                             <?php unset($_SESSION['errors']); ?>
                         <?php endif; ?>
 
+                        <?php if (!empty($_SESSION['success_message'])): ?>
+                            <div class="mb-6 p-4 rounded-xl bg-green-100 border border-green-300 text-green-700">
+                                <?= htmlspecialchars($_SESSION['success_message']) ?>
+                            </div>
+                            <?php unset($_SESSION['success_message']); ?>
+                        <?php endif; ?>
                         
-                        <form id="signupForm" action="#" method="POST" class="space-y-6">
+                        <form id="signupForm" action="signup.php" method="POST" class="space-y-6">
                             <div>
                                 <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
                                     <i class="fas fa-envelope mr-2 text-gray-500"></i>Email Address *
                                 </label>
-                                <input type="email" id="email" name="email" required maxlength="180" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition" placeholder="you@example.com">
+                                <input type="email" id="email" name="email" required maxlength="180" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition" placeholder="you@example.com" value="<?= isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '' ?>">
                                 <p class="text-xs text-gray-500 mt-1">Must be a valid email address</p>
                             </div>
                             <div>
@@ -149,40 +175,40 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
                                     <i class="fas fa-lock mr-2 text-gray-500"></i>Password *
                                 </label>
                                 <div class="relative">
-                                    <input type="password" id="password" name="password" required minlength="8" maxlength="255" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition pr-12" placeholder="At least 8 characters">
+                                    <input type="password" id="password" name="password" required minlength="6" maxlength="255" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition pr-12" placeholder="At least 6 characters">
                                     <button type="button" id="togglePassword" class="absolute right-4 top-3 text-gray-500">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
+                                <p class="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label for="first_name" class="block text-sm font-medium text-gray-700 mb-2">
                                         <i class="fas fa-user mr-2 text-gray-500"></i>First Name *
                                     </label>
-                                    <input type="text" id="first_name" name="first_name" required maxlength="100" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition" placeholder="John">
+                                    <input type="text" id="first_name" name="first_name" required maxlength="100" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition" placeholder="John" value="<?= isset($_POST['first_name']) ? htmlspecialchars($_POST['first_name']) : '' ?>">
                                 </div>
                                 
                                 <div>
                                     <label for="last_name" class="block text-sm font-medium text-gray-700 mb-2">
                                         <i class="fas fa-user mr-2 text-gray-500"></i>Last Name *
                                     </label>
-                                    <input type="text" id="last_name" name="last_name" required maxlength="100" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition" placeholder="Doe">
+                                    <input type="text" id="last_name" name="last_name" required maxlength="100" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition" placeholder="Doe" value="<?= isset($_POST['last_name']) ? htmlspecialchars($_POST['last_name']) : '' ?>">
                                 </div>
                             </div>
                             <div>
                                 <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
                                     <i class="fas fa-phone mr-2 text-gray-500"></i>Phone Number (Optional)
                                 </label>
-                                <input type="tel" id="phone" name="phone" maxlength="20" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition" placeholder="+1 (555) 123-4567">
+                                <input type="tel" id="phone" name="phone" maxlength="20" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition" placeholder="+1 (555) 123-4567" value="<?= isset($_POST['phone']) ? htmlspecialchars($_POST['phone']) : '' ?>">
                                 <p class="text-xs text-gray-500 mt-1">Include country code if international</p>
                             </div>
                             <div>
                                 <label for="location" class="block text-sm font-medium text-gray-700 mb-2">
                                     <i class="fas fa-map-marker-alt mr-2 text-gray-500"></i>Location *
                                 </label>
-                                <input type="text" id="location" name="location" required placeholder="Enter your city" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition"/>
+                                <input type="text" id="location" name="location" required placeholder="Enter your city" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition" value="<?= isset($_POST['location']) ? htmlspecialchars($_POST['location']) : '' ?>"/>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-3">
@@ -236,7 +262,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
                             <div class="text-center pt-4">
                                 <p class="text-gray-600">
                                     Already have an account? 
-                                    <a href="login.html" class="text-purple-600 font-medium hover:text-purple-800">Sign in here</a>
+                                    <a href="login.php" class="text-purple-600 font-medium hover:text-purple-800">Sign in here</a>
                                 </p>
                             </div>
                         </form>
@@ -308,6 +334,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
                 icon.classList.add('fa-eye');
             }
         });
+        
         const roleOptions = document.querySelectorAll('.role-option');
         const roleInput = document.getElementById('role');
         const adminOption = document.getElementById('adminOption');
@@ -320,10 +347,12 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
                     opt.classList.remove('role-selected', 'border-purple-600');
                     opt.classList.add('border-gray-200');
                 });
+                
                 this.classList.remove('border-gray-200');
                 this.classList.add('role-selected', 'border-purple-600');
                 const selectedRole = this.getAttribute('data-role');
                 roleInput.value = selectedRole;
+                
                 if (selectedRole === 'admin') {
                     adminCodeContainer.classList.remove('hidden');
                     adminCodeInput.required = true;
@@ -333,9 +362,9 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
                 }
             });
         });
+        
         document.querySelector('.role-option[data-role="voyageur"]').classList.add('role-selected', 'border-purple-600');
         
-        // Show admin option when pressing Ctrl+Shift+A
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.shiftKey && e.key === 'A') {
                 adminOption.classList.remove('hidden');

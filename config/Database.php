@@ -1,5 +1,5 @@
 <?php
-session_start();
+// session_start();
 class Database{
     private const DB_HOST = 'localhost';
     private const DB_USER = 'root';

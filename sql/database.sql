@@ -8,7 +8,7 @@ CREATE TABLE users (
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
-    location VARCHAR(50) not null,
+    location VARCHAR(50) NOT NULL,
     role ENUM('voyageur', 'hote', 'admin') DEFAULT 'voyageur',
     is_active BOOLEAN DEFAULT TRUE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -22,9 +22,9 @@ CREATE TABLE logement (
     imageUrl VARCHAR(255) NOT NULL,
     type ENUM('apartment', 'house', 'villa', 'other') DEFAULT 'apartment',
     price DECIMAL(10, 2) NOT NULL,
-    capacity INT NOT NULL DEFAULT 1, --nombre de guests
+    capacity INT NOT NULL DEFAULT 1,
     average_rating DECIMAL(3, 2) DEFAULT 0.00,
-    available_form DATETIME NOT NULL,
+    available_from DATETIME NOT NULL,
     available_to DATETIME NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -71,14 +71,14 @@ CREATE TABLE favorites (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_favorite_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     CONSTRAINT fk_favorite_logement FOREIGN KEY (logement_id) REFERENCES logement(logement_id) ON DELETE CASCADE,
-    CONSTRAINT unique_user_logement UNIQUE (user_id, logement_id),
+    CONSTRAINT unique_user_logement UNIQUE (user_id, logement_id)
 );
 
-CREATE TABLE profile(
+CREATE TABLE profile (
     profile_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT UNIQUE NOT NULL,
     photo VARCHAR(255),
-    userName VARCHAR(50) NOT NULL,
+    username VARCHAR(50) NOT NULL,
     bio VARCHAR(200),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_profile_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
@@ -116,3 +116,6 @@ CREATE TABLE admin_logs (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_admin_logs_user FOREIGN KEY (admin_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
+-- admin (mot de passe: admin123)
+INSERT INTO users (first_name, last_name, email, phone, location, password, role) VALUES ('hanane', 'taouili', 'hanan2122hanan@gmail.com', '0609976685', 'safi maroc', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');

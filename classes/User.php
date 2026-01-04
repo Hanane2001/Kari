@@ -29,7 +29,7 @@ class User {
         $this->db = Database::getInstance()->getConnection();
     }
 
-    public function signup(){
+    public function signup(): int|false {
         try {
             $sql = "INSERT INTO users (first_name, last_name, email, phone, location, password, role) VALUES (:first_name, :last_name, :email, :phone, :location, :password, :role)";
             $stmt = $this->db->prepare($sql);
@@ -43,7 +43,7 @@ class User {
         }
     }
 
-    public static function login($email, $password){
+    public static function login(string $email, string $password): array|false {
         try {
             $db = Database::getInstance()->getConnection();
             $sql = "SELECT * FROM users WHERE email = :email";
@@ -52,32 +52,54 @@ class User {
             $user = $stmt->fetch();
             
             if ($user && password_verify($password, $user['password'])) {
-                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_id'] = $user['user_id'];
                 $_SESSION['user_role'] = $user['role'];
                 $_SESSION['user_email'] = $user['email'];
-                $_SESSION['user_name'] = $user['first_name'].' '.$user['last_name'];
+                $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
                 return $user;
             }
             return false;
         } catch (PDOException $e) {
-            error_log("Connection error: " . $e->getMessage());
+            error_log("Login error: " . $e->getMessage());
             return false;
         }
     }
 
-    public static function logout(){
+    public static function logout(): bool {
         session_destroy();
         session_unset();
         return true;
     }
 
-    public function getId() { return $this->id; }
-    public function getFirstName() { return $this->firstName; }
-    public function getLastName() { return $this->lastName; }
-    public function getEmail() { return $this->email; }
-    public function getPhone() { return $this->phone; }
-    public function getLocation() { return $this->location; }
-    public function getRole() { return $this->role; }
-    public function getFullName() { return $this->firstName . ' ' . $this->lastName;}
+    public function getId(): int {
+        return $this->id;
+    }
+
+    public function getFirstName(): string {
+        return $this->firstName;
+    }
+
+    public function getLastName(): string {
+        return $this->lastName;
+    }
+
+    public function getEmail(): string {
+        return $this->email;
+    }
+
+    public function getPhone(): string {
+        return $this->phone;
+    }
+
+    public function getLocation(): string {
+        return $this->location;
+    }
+
+    public function getRole(): RoleUs {
+        return $this->role;
+    }
+
+    public function getFullName(): string {
+        return $this->firstName . ' ' . $this->lastName;
+    }
 }
-?>
