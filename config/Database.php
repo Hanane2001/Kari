@@ -5,7 +5,7 @@ class Database{
     private const DB_USER = 'root';
     private const DB_PASS = '';
     private const DB_NAME = 'kari';
-    public static ?Database $instance;
+    public static ?Database $instance = null;
     private $pdo;
 
     private function __construct(){
@@ -20,7 +20,7 @@ class Database{
     }
 
     public static function getInstance(){
-        if (!self::$instance) {
+        if (self::$instance === null){
             self::$instance = new self();
         }
         return self::$instance;

@@ -1,3 +1,80 @@
+<?php
+if($_SERVER['REQUEST_METHOD'] === 'POST'){
+    $role = trim($_POST['role'] ?? 'voyageur');
+    $firstName = trim($_POST['first_name'] ?? '');
+    $lastName = trim($_POST['last_name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $password = trim($_POST['password'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    $location = trim($_POST['location'] ?? '');
+    $adminCode = $_POST['admin_code'] ?? '';
+    $errors = [];
+
+    if (empty($firstName) || empty($lastName)) {
+        $errors[] = "First name and last name are required";
+    }
+    
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = "Invalid email format";
+    }
+    
+    if (strlen($password) < 6) {
+        $errors[] = "Password must be at least 6 characters";
+    }
+
+    if (!empty($phone) && strlen($phone) > 20) {
+        $errors[] = "Phone number cannot exceed 20 characters";
+    }
+
+    if (empty($location)) {
+        $errors[] = "Location is required";
+    }
+
+    if ($role === 'admin' && $adminCode !== 'admin123') {
+        $errors[] = "Invalid admin access code";
+    }
+
+    if (!empty($errors)) {
+        $_SESSION['errors'] = $errors;
+        header("Location: signup.php");
+        exit();
+    }
+    
+    switch ($role) {
+
+        case 'voyageur':
+            require_once '../classes/Voyageur.php';
+            $user = new Voyageur($firstName, $lastName, $email, $phone, $location, $password);
+            $id = $user->getVoyageurId();
+            break;
+
+        case 'hote':
+            require_once '../classes/Hote.php';
+            $user = new Hote($firstName, $lastName, $email, $phone, $location, $password);
+            $id = $user->getHoteId();
+            break;
+
+        case 'admin':
+            require_once '../classes/Admin.php';
+            $user = new Admin($firstName, $lastName, $email, $phone, $location, $password);
+            $id = $user->getAdminId();
+            break;
+
+        default:
+            $id = null;
+    }
+
+    if ($id !== null) {
+        $_SESSION['success_message'] = "Account created successfully! Please login.";
+        header("Location: login.php");
+        exit();
+    }
+
+    $_SESSION['errors'] = ["Failed to create account. Please try again."];
+    header("Location: signup.php");
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,13 +116,25 @@
                 <div class="md:flex">
                     <div class="md:w-1/2 p-8 md:p-12">
                         <div class="text-center mb-10">
-                            <a href="index.html" class="inline-flex items-center space-x-2 mb-4">
+                            <a href="../index.php" class="inline-flex items-center space-x-2 mb-4">
                                 <i class="fas fa-home text-3xl text-purple-600"></i>
                                 <span class="text-2xl font-bold text-gray-900">Stay<span class="text-purple-600">Ease</span></span>
                             </a>
                             <h1 class="text-3xl font-bold text-gray-900">Create Your Account</h1>
                             <p class="text-gray-600 mt-2">Join our community of travelers and hosts</p>
                         </div>
+
+                        <?php if (!empty($_SESSION['errors'])): ?>
+                            <div class="mb-6 p-4 rounded-xl bg-red-100 border border-red-300 text-red-700">
+                                <ul class="list-disc list-inside space-y-1 text-sm">
+                                    <?php foreach ($_SESSION['errors'] as $error): ?>
+                                        <li><?= htmlspecialchars($error) ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                            <?php unset($_SESSION['errors']); ?>
+                        <?php endif; ?>
+
                         
                         <form id="signupForm" action="#" method="POST" class="space-y-6">
                             <div>

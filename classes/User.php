@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config/Database.php';
 
 enum RoleUs: string {
     case VOYAGEUR = 'voyageur';
-    case HOST = 'host';
+    case HOTE = 'hote';
     case ADMIN = 'admin';
 }
 
@@ -16,7 +16,7 @@ class User {
     protected string $location;
     protected string $password;
     protected RoleUs $role;
-    protected Database $db;
+    protected PDO $db;
 
     public function __construct(string $firstName, string $lastName, string $email, string $phone, string $location, string $password, RoleUs $role) {
         $this->firstName = $firstName;
@@ -31,12 +31,12 @@ class User {
 
     public function signup(){
         try {
-            $sql = "INSERT INTO users (firstName, lastName, email, phone, location, password, role) VALUES (:firstName, :lastName, :email, :phone, :location, :password, :role)";
+            $sql = "INSERT INTO users (first_name, last_name, email, phone, location, password, role) VALUES (:first_name, :last_name, :email, :phone, :location, :password, :role)";
             $stmt = $this->db->prepare($sql);
-            $stmt->execute([':firstName' => $this->firstName,':lastName' => $this->lastName,':email' => $this->email,':phone' => $this->phone,':location' => $this->location,':password' => $this->password,':role' => $this->role->value]);
+            $stmt->execute([':first_name' => $this->firstName,':last_name' => $this->lastName,':email' => $this->email,':phone' => $this->phone,':location' => $this->location,':password' => $this->password,':role' => $this->role->value]);
             
-            $this->id = $this->db->lastInsertId();
-            return true;
+            $this->id = (int) $this->db->lastInsertId();
+            return $this->id;
         } catch (PDOException $e) {
             error_log("Registration error: " . $e->getMessage());
             return false;
@@ -55,7 +55,7 @@ class User {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_role'] = $user['role'];
                 $_SESSION['user_email'] = $user['email'];
-                $_SESSION['user_name'] = $user['firstName'] . ' ' . $user['lastName'];
+                $_SESSION['user_name'] = $user['first_name'].' '.$user['last_name'];
                 return $user;
             }
             return false;
