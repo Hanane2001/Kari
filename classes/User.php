@@ -56,6 +56,7 @@ class User {
                 $_SESSION['user_role'] = $user['role'];
                 $_SESSION['user_email'] = $user['email'];
                 $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
+                $_SESSION['user_location'] = $user['location'];
                 return $user;
             }
             return false;
@@ -71,8 +72,35 @@ class User {
         return true;
     }
 
-    public function getId(): int {
-        return $this->id;
+    public static function getById(int $userId): ?array {
+        try {
+            $db = Database::getInstance()->getConnection();
+            $sql = "SELECT * FROM users WHERE user_id = :user_id";
+            $stmt = $db->prepare($sql);
+            $stmt->execute([':user_id' => $userId]);
+            
+            $user = $stmt->fetch();
+            return $user ? $user : null;
+        } catch (PDOException $e) {
+            error_log("User getById error: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    public static function updateProfile(int $userId, array $data): bool {
+        try {
+            $db = Database::getInstance()->getConnection();
+            $sql = "UPDATE users SET first_name = :first_name, last_name = :last_name, phone = :phone, location = :location WHERE user_id = :user_id";
+            $stmt = $db->prepare($sql);
+            return $stmt->execute([':first_name' => $data['first_name'],':last_name' => $data['last_name'],':phone' => $data['phone'],':location' => $data['location'],':user_id' => $userId]);
+        } catch (PDOException $e) {
+            error_log("User updateProfile error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function getId(): int { 
+        return $this->id; 
     }
 
     public function getFirstName(): string {
@@ -103,3 +131,4 @@ class User {
         return $this->firstName . ' ' . $this->lastName;
     }
 }
+?>

@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/../classes/User.php';
 
 if($_SERVER['REQUEST_METHOD'] === 'POST'){
     require_once __DIR__ . '/../config/Database.php';
@@ -58,33 +59,54 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
         header("Location: signup.php");
         exit();
     }
+
+    $roleEnum = match($role) {
+        'voyageur' => RoleUs::VOYAGEUR,
+        'hote' => RoleUs::HOTE,
+        'admin' => RoleUs::ADMIN,
+        default => RoleUs::VOYAGEUR
+    };
     
-    $id = null;
+//     $id = null;
     
-    switch ($role) {
-        case 'voyageur':
-            require_once __DIR__ . '/../classes/Voyageur.php';
-            $user = new Voyageur($firstName, $lastName, $email, $phone, $location, $password);
-            $id = $user->getId();
-            break;
+//     switch ($role) {
+//         case 'voyageur':
+//             require_once __DIR__ . '/../classes/Voyageur.php';
+//             $user = new Voyageur($firstName, $lastName, $email, $phone, $location, $password);
+//             $id = $user->getId();
+//             break;
 
-        case 'hote':
-            require_once __DIR__ . '/../classes/Hote.php';
-            $user = new Hote($firstName, $lastName, $email, $phone, $location, $password);
-            $id = $user->getId();
-            break;
+//         case 'hote':
+//             require_once __DIR__ . '/../classes/Hote.php';
+//             $user = new Hote($firstName, $lastName, $email, $phone, $location, $password);
+//             $id = $user->getId();
+//             break;
 
-        case 'admin':
-            require_once __DIR__ . '/../classes/Admin.php';
-            $user = new Admin($firstName, $lastName, $email, $phone, $location, $password);
-            $id = $user->getId();
-            break;
+//         case 'admin':
+//             require_once __DIR__ . '/../classes/Admin.php';
+//             $user = new Admin($firstName, $lastName, $email, $phone, $location, $password);
+//             $id = $user->getId();
+//             break;
 
-        default:
-            $id = null;
-    }
+//         default:
+//             $id = null;
+//     }
 
-    if ($id !== null && $id !== false) {
+//     if ($id !== null && $id !== false) {
+//         $_SESSION['success_message'] = "Account created successfully! Please login.";
+//         header("Location: login.php");
+//         exit();
+//     } else {
+//         $_SESSION['errors'] = ["Failed to create account. Please try again."];
+//         header("Location: signup.php");
+//         exit();
+//     }
+// }
+
+    $user = new User($firstName, $lastName, $email, $phone, $location, $password, $roleEnum);
+    $userId = $user->signup();
+    
+    if ($userId !== false) {
         $_SESSION['success_message'] = "Account created successfully! Please login.";
         header("Location: login.php");
         exit();

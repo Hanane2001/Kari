@@ -1,3 +1,35 @@
+<?php
+session_start();
+require_once __DIR__ . '/classes/Logement.php';
+require_once __DIR__ . '/classes/Favorites.php';
+
+$searchResults = [];
+$favorites = null;
+
+if (isset($_SESSION['user_id'])) {
+    $favorites = new Favorites();
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search'])) {
+    $city = $_GET['city'] ?? null;
+    $minPrice = !empty($_GET['min_price']) ? (float)$_GET['min_price'] : null;
+    $maxPrice = !empty($_GET['max_price']) ? (float)$_GET['max_price'] : null;
+    $startDate = !empty($_GET['start_date']) ? new DateTime($_GET['start_date']) : null;
+    $endDate = !empty($_GET['end_date']) ? new DateTime($_GET['end_date']) : null;
+    $guests = !empty($_GET['guests']) ? (int)$_GET['guests'] : null;
+    
+    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+    $limit = 12;
+    $offset = ($page - 1) * $limit;
+    
+    $searchResults = Logement::getAllAvailable($city, $minPrice, $maxPrice, $startDate, $endDate, $guests, $limit, $offset);
+
+    $totalResults = count(Logement::getAllAvailable($city, $minPrice, $maxPrice, $startDate, $endDate, $guests, 1000, 0));
+    $totalPages = ceil($totalResults / $limit);
+} else {
+    $searchResults = Logement::getAllAvailable(null, null, null, null, null, null, 12, 0);
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,28 +50,44 @@
     </style>
 </head>
 <body class="text-gray-800">
+
     <nav class="bg-white shadow-md py-4 px-6">
         <div class="container mx-auto flex justify-between items-center">
-            <a href="#" class="flex items-center space-x-2">
+            <a href="index.php" class="flex items-center space-x-2">
                 <i class="fas fa-home text-3xl text-primary"></i>
                 <span class="text-2xl font-bold text-gray-900">Stay<span class="text-primary">Ease</span></span>
             </a>
             
             <div class="hidden md:flex space-x-8">
-                <a href="#" class="font-medium hover:text-primary">Home</a>
-                <a href="#" class="font-medium hover:text-primary">Rentals</a>
-                <a href="#" class="font-medium hover:text-primary">Become a Host</a>
+                <a href="index.php" class="font-medium hover:text-primary">Home</a>
+                <a href="index.php?search=1" class="font-medium hover:text-primary">All Rentals</a>
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <?php if ($_SESSION['user_role'] === 'hote'): ?>
+                        <a href="dashboard/dashboardHote.php" class="font-medium hover:text-primary">Host Dashboard</a>
+                    <?php elseif ($_SESSION['user_role'] === 'admin'): ?>
+                        <a href="dashboard/dashboardAdmin.php" class="font-medium hover:text-primary">Admin Dashboard</a>
+                    <?php else: ?>
+                        <a href="dashboard/dashboardVoyageur.php" class="font-medium hover:text-primary">My Dashboard</a>
+                    <?php endif; ?>
+                <?php endif; ?>
                 <a href="#" class="font-medium hover:text-primary">Help</a>
             </div>
             
             <div class="flex items-center space-x-4">
-                <div class="hidden md:flex items-center space-x-4">
-                    <span class="px-3 py-1 bg-gray-100 rounded-full text-sm">
-                        <i class="fas fa-user mr-1"></i> 
-                        <span id="userRole">Guest</span>
-                    </span>
-                    <a href="#" class="px-4 py-2 bg-primary text-white font-medium rounded-full hover:bg-red-600 transition">Login / Sign up</a>
-                </div>
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <div class="hidden md:flex items-center space-x-4">
+                        <span class="px-3 py-1 bg-gray-100 rounded-full text-sm">
+                            <i class="fas fa-user mr-1"></i> 
+                            <?= htmlspecialchars($_SESSION['user_name']) ?>
+                        </span>
+                        <a href="auth/logout.php" class="px-4 py-2 bg-red-600 text-white font-medium rounded-full hover:bg-red-400 transition">Logout</a>
+                    </div>
+                <?php else: ?>
+                    <div class="hidden md:flex items-center space-x-4">
+                        <a href="auth/login.php" class="px-4 py-2 bg-red-600 text-white font-medium rounded-full hover:bg-red-400 transition">Login</a>
+                        <a href="auth/signup.php" class="px-4 py-2 bg-red-600 text-white font-medium rounded-full hover:bg-red-400 transition">Sign up</a>
+                    </div>
+                <?php endif; ?>
                 <button id="mobileMenuBtn" class="md:hidden text-2xl">
                     <i class="fas fa-bars"></i>
                 </button>
@@ -48,13 +96,25 @@
 
         <div id="mobileMenu" class="md:hidden hidden mt-4 pb-4">
             <div class="flex flex-col space-y-4">
-                <a href="#" class="font-medium hover:text-primary">Home</a>
-                <a href="#" class="font-medium hover:text-primary">Rentals</a>
-                <a href="#" class="font-medium hover:text-primary">Become a Host</a>
-                <a href="#" class="font-medium hover:text-primary">Help</a>
-                <div class="pt-4 border-t">
-                    <a href="#" class="block text-center px-4 py-2 bg-primary text-white font-medium rounded-full hover:bg-red-600 transition">Login / Sign up</a>
-                </div>
+                <a href="index.php" class="font-medium hover:text-primary">Home</a>
+                <a href="index.php?search=1" class="font-medium hover:text-primary">All Rentals</a>
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <?php if ($_SESSION['user_role'] === 'hote'): ?>
+                        <a href="dashboard/dashboardHote.php" class="font-medium hover:text-primary">Host Dashboard</a>
+                    <?php elseif ($_SESSION['user_role'] === 'admin'): ?>
+                        <a href="dashboard/dashboardAdmin.php" class="font-medium hover:text-primary">Admin Dashboard</a>
+                    <?php else: ?>
+                        <a href="dashboard/dashboardVoyageur.php" class="font-medium hover:text-primary">My Dashboard</a>
+                    <?php endif; ?>
+                    <div class="pt-4 border-t">
+                        <a href="auth/logout.php" class="block text-center px-4 py-2 bg-red-600 text-white font-medium rounded-full hover:bg-red-400 transition">Logout</a>
+                    </div>
+                <?php else: ?>
+                    <div class="pt-4 border-t">
+                        <a href="auth/login.php" class="block text-center px-4 py-2 bg-red-600 text-white font-medium rounded-full hover:bg-red-400 transition">Login</a>
+                        <a href="auth/signup.php" class="block text-center mt-2 px-4 py-2 bg-red-600 text-white font-medium rounded-full hover:bg-red-400 transition">Sign up</a>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </nav>
@@ -64,37 +124,173 @@
             <h1 class="text-4xl md:text-5xl font-bold mb-6">Find your perfect getaway</h1>
             <p class="text-xl mb-10 max-w-2xl mx-auto">Book unique homes, apartments, and experiences for your next vacation.</p>
             
-            <div class="bg-white rounded-2xl shadow-2xl p-4 md:p-6 max-w-4xl mx-auto">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-white rounded-2xl shadow-2xl p-4 md:p-6 max-w-4xl mx-auto text-black">
+                <form method="GET" action="index.php" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <input type="hidden" name="search" value="1">
                     <div class="md:col-span-1">
                         <label class="block text-gray-700 text-sm font-medium mb-1">Location</label>
-                        <input type="text" placeholder="Where are you going?" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                        <input type="text" name="city" placeholder="Where are you going?" 
+                               value="<?= isset($_GET['city']) ? htmlspecialchars($_GET['city']) : '' ?>" 
+                               class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
                     </div>
                     <div>
                         <label class="block text-gray-700 text-sm font-medium mb-1">Check-in</label>
-                        <input type="date" class="w-full p-3 text-gray-400 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                        <input type="date" name="start_date" 
+                               value="<?= isset($_GET['start_date']) ? htmlspecialchars($_GET['start_date']) : '' ?>" 
+                               class="w-full p-3 text-gray-400 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
                     </div>
                     <div>
                         <label class="block text-gray-700 text-sm font-medium mb-1">Check-out</label>
-                        <input type="date" class="w-full p-3 border text-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                        <input type="date" name="end_date" 
+                               value="<?= isset($_GET['end_date']) ? htmlspecialchars($_GET['end_date']) : '' ?>" 
+                               class="w-full p-3 border text-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
                     </div>
                     <div class="md:col-span-1">
                         <label class="block text-gray-700 text-sm font-medium mb-1">Guests</label>
                         <div class="flex items-center border rounded-lg p-3">
                             <i class="fas fa-user text-gray-500 mr-2"></i>
-                            <select class="w-full focus:outline-none text-gray-400">
-                                <option>1 guest</option>
-                                <option>2 guests</option>
-                                <option>3 guests</option>
-                                <option>4+ guests</option>
+                            <select name="guests" class="w-full focus:outline-none text-gray-400">
+                                <option value="">Any</option>
+                                <option value="1" <?= (isset($_GET['guests']) && $_GET['guests'] == 1) ? 'selected' : '' ?>>1 guest</option>
+                                <option value="2" <?= (isset($_GET['guests']) && $_GET['guests'] == 2) ? 'selected' : '' ?>>2 guests</option>
+                                <option value="3" <?= (isset($_GET['guests']) && $_GET['guests'] == 3) ? 'selected' : '' ?>>3 guests</option>
+                                <option value="4" <?= (isset($_GET['guests']) && $_GET['guests'] == 4) ? 'selected' : '' ?>>4+ guests</option>
                             </select>
                         </div>
                     </div>
+                    <button type="submit" class="mt-6 w-full md:w-auto px-8 py-4 bg-red-600 text-white font-bold rounded-xl hover:bg-red-400 transition flex items-center justify-center mx-auto">
+                        <i class="fas fa-search mr-2"></i> Search Rentals
+                    </button>
+                </form>
+                
+                <?php if (isset($_GET['search'])): ?>
+                <div class="mt-6 flex flex-wrap gap-2 justify-center">
+                    <?php if (!empty($_GET['city'])): ?>
+                        <span class="px-3 py-1 bg-gray-100 rounded-full text-sm">City: <?= htmlspecialchars($_GET['city']) ?></span>
+                    <?php endif; ?>
+                    <?php if (!empty($_GET['start_date'])): ?>
+                        <span class="px-3 py-1 bg-gray-100 rounded-full text-sm">From: <?= htmlspecialchars($_GET['start_date']) ?></span>
+                    <?php endif; ?>
+                    <?php if (!empty($_GET['end_date'])): ?>
+                        <span class="px-3 py-1 bg-gray-100 rounded-full text-sm">To: <?= htmlspecialchars($_GET['end_date']) ?></span>
+                    <?php endif; ?>
+                    <?php if (!empty($_GET['guests'])): ?>
+                        <span class="px-3 py-1 bg-gray-100 rounded-full text-sm">Guests: <?= htmlspecialchars($_GET['guests']) ?></span>
+                    <?php endif; ?>
+                    <a href="index.php" class="px-3 py-1 bg-red-100 text-red-600 rounded-full text-sm hover:bg-red-200">
+                        <i class="fas fa-times mr-1"></i> Clear filters
+                    </a>
                 </div>
-                <button class="mt-6 w-full md:w-auto px-8 py-4 bg-primary text-white font-bold rounded-xl hover:bg-red-600 transition flex items-center justify-center mx-auto">
-                    <i class="fas fa-search mr-2"></i> Search Rentals
-                </button>
+                <?php endif; ?>
             </div>
+        </div>
+    </section>
+
+    <section class="py-16 px-6">
+        <div class="container mx-auto">
+            <div class="flex justify-between items-center mb-10">
+                <h2 class="text-3xl font-bold">
+                    <?php if (isset($_GET['search'])): ?>
+                        Search Results (<?= count($searchResults) ?> found)
+                    <?php else: ?>
+                        Featured Rentals
+                    <?php endif; ?>
+                </h2>
+                <?php if (!isset($_GET['search'])): ?>
+                    <a href="index.php?search=1" class="text-primary font-medium hover:underline">View all <i class="fas fa-arrow-right ml-1"></i></a>
+                <?php endif; ?>
+            </div>
+            
+            <?php if (empty($searchResults)): ?>
+                <div class="text-center py-12">
+                    <i class="fas fa-search text-5xl text-gray-300 mb-4"></i>
+                    <h3 class="text-xl font-bold text-gray-700 mb-2">No rentals found</h3>
+                    <p class="text-gray-600">Try adjusting your search criteria or browse all available rentals.</p>
+                    <a href="index.php" class="inline-block mt-4 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-400">
+                        Browse All Rentals
+                    </a>
+                </div>
+            <?php else: ?>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <?php foreach ($searchResults as $logement): 
+                        $isFavorite = isset($_SESSION['user_id']) ? $favorites->isFavorite($_SESSION['user_id'], $logement['logement_id']) : false;
+                    ?>
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition transform hover:-translate-y-1">
+                        <div class="relative">
+                            <a href="logement_detail.php?id=<?= $logement['logement_id'] ?>">
+                                <img src="<?= htmlspecialchars($logement['imageUrl']) ?>" alt="<?= htmlspecialchars($logement['title']) ?>" class="w-full h-48 object-cover">
+                            </a>
+                            <?php if (isset($_SESSION['user_id'])): ?>
+                            <form method="POST" action="favorites.php" class="absolute top-4 right-4">
+                                <input type="hidden" name="logement_id" value="<?= $logement['logement_id'] ?>">
+                                <input type="hidden" name="action" value="<?= $isFavorite ? 'remove' : 'add' ?>">
+                                <button type="submit" class="text-2xl <?= $isFavorite ? 'text-primary' : 'text-gray-300 hover:text-primary' ?>">
+                                    <i class="<?= $isFavorite ? 'fas' : 'far' ?> fa-heart"></i>
+                                </button>
+                            </form>
+                            <?php endif; ?>
+                            <span class="absolute top-4 left-4 bg-white px-3 py-1 rounded-full text-sm font-medium shadow">
+                                $<?= number_format($logement['price'], 2) ?>/night
+                            </span>
+                        </div>
+                        <div class="p-5">
+                            <a href="logement_detail.php?id=<?= $logement['logement_id'] ?>" class="block">
+                                <h3 class="font-bold text-lg mb-1 hover:text-primary transition"><?= htmlspecialchars($logement['title']) ?></h3>
+                            </a>
+                            <p class="text-gray-600 mb-3 text-sm">
+                                <i class="fas fa-map-marker-alt text-primary mr-2"></i>
+                                <?// htmlspecialchars($logement['location']) ?>
+                            </p>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <?php if ($logement['average_rating'] > 0): ?>
+                                        <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                        <span class="font-medium"><?= number_format($logement['average_rating'], 1) ?></span>
+                                    <?php else: ?>
+                                        <span class="text-gray-500 text-sm">No reviews yet</span>
+                                    <?php endif; ?>
+                                </div>
+                                <span class="text-sm bg-gray-100 px-2 py-1 rounded">
+                                    <i class="fas fa-user-friends mr-1"></i> <?= $logement['capacity'] ?> guests
+                                </span>
+                            </div>
+                            <div class="mt-4 pt-4 border-t">
+                                <p class="text-gray-500 text-sm">Hosted by <?= htmlspecialchars($logement['first_name'] . ' ' . $logement['last_name']) ?></p>
+                                <a href="logement_detail.php?id=<?= $logement['logement_id'] ?>" class="block mt-3 w-full text-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-400 transition">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                
+                <?php if (isset($_GET['search']) && isset($totalPages) && $totalPages > 1): ?>
+                <div class="mt-12 flex justify-center">
+                    <nav class="flex items-center space-x-2">
+                        <?php if ($page > 1): ?>
+                            <a href="?<?= http_build_query(array_merge($_GET, ['page' => $page - 1])) ?>" class="px-4 py-2 border rounded hover:bg-gray-100">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        <?php endif; ?>
+                        
+                        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                            <?php if ($i == $page): ?>
+                                <span class="px-4 py-2 bg-primary text-white rounded"><?= $i ?></span>
+                            <?php else: ?>
+                                <a href="?<?= http_build_query(array_merge($_GET, ['page' => $i])) ?>" class="px-4 py-2 border rounded hover:bg-gray-100"><?= $i ?></a>
+                            <?php endif; ?>
+                        <?php endfor; ?>
+                        
+                        <?php if ($page < $totalPages): ?>
+                            <a href="?<?= http_build_query(array_merge($_GET, ['page' => $page + 1])) ?>" class="px-4 py-2 border rounded hover:bg-gray-100">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        <?php endif; ?>
+                    </nav>
+                </div>
+                <?php endif; ?>
+            <?php endif; ?>
         </div>
     </section>
 
@@ -130,110 +326,11 @@
         </div>
     </section>
 
-    <section class="py-16 px-6">
-        <div class="container mx-auto">
-            <div class="flex justify-between items-center mb-10">
-                <h2 class="text-3xl font-bold">Featured Rentals</h2>
-                <a href="#" class="text-primary font-medium hover:underline">View all <i class="fas fa-arrow-right ml-1"></i></a>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
-                    <div class="relative">
-                        <img src="https://images.unsplash.com/photo-1613977257363-707ba9348227?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Modern Apartment" class="w-full h-48 object-cover">
-                        <button class="absolute top-4 right-4 text-2xl text-gray-300 hover:text-primary">
-                            <i class="far fa-heart"></i>
-                        </button>
-                        <span class="absolute top-4 left-4 bg-white px-3 py-1 rounded-full text-sm font-medium">$125/night</span>
-                    </div>
-                    <div class="p-5">
-                        <h3 class="font-bold text-lg mb-1">Modern Apartment in Downtown</h3>
-                        <p class="text-gray-600 mb-3"><i class="fas fa-map-marker-alt text-primary mr-2"></i>Paris, France</p>
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <i class="fas fa-star text-yellow-400 mr-1"></i>
-                                <span class="font-medium">4.8</span>
-                                <span class="text-gray-500 ml-1">(124 reviews)</span>
-                            </div>
-                            <span class="text-sm bg-gray-100 px-2 py-1 rounded"><i class="fas fa-user-friends mr-1"></i> 4 guests</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
-                    <div class="relative">
-                        <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Beach Villa" class="w-full h-48 object-cover">
-                        <button class="absolute top-4 right-4 text-2xl text-gray-300 hover:text-primary">
-                            <i class="far fa-heart"></i>
-                        </button>
-                        <span class="absolute top-4 left-4 bg-white px-3 py-1 rounded-full text-sm font-medium">$245/night</span>
-                    </div>
-                    <div class="p-5">
-                        <h3 class="font-bold text-lg mb-1">Beachfront Villa</h3>
-                        <p class="text-gray-600 mb-3"><i class="fas fa-map-marker-alt text-primary mr-2"></i>Bali, Indonesia</p>
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <i class="fas fa-star text-yellow-400 mr-1"></i>
-                                <span class="font-medium">4.9</span>
-                                <span class="text-gray-500 ml-1">(89 reviews)</span>
-                            </div>
-                            <span class="text-sm bg-gray-100 px-2 py-1 rounded"><i class="fas fa-user-friends mr-1"></i> 6 guests</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
-                    <div class="relative">
-                        <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Mountain Cabin" class="w-full h-48 object-cover">
-                        <button class="absolute top-4 right-4 text-2xl text-gray-300 hover:text-primary">
-                            <i class="far fa-heart"></i>
-                        </button>
-                        <span class="absolute top-4 left-4 bg-white px-3 py-1 rounded-full text-sm font-medium">$95/night</span>
-                    </div>
-                    <div class="p-5">
-                        <h3 class="font-bold text-lg mb-1">Cozy Mountain Cabin</h3>
-                        <p class="text-gray-600 mb-3"><i class="fas fa-map-marker-alt text-primary mr-2"></i>Swiss Alps, Switzerland</p>
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <i class="fas fa-star text-yellow-400 mr-1"></i>
-                                <span class="font-medium">4.7</span>
-                                <span class="text-gray-500 ml-1">(67 reviews)</span>
-                            </div>
-                            <span class="text-sm bg-gray-100 px-2 py-1 rounded"><i class="fas fa-user-friends mr-1"></i> 2 guests</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
-                    <div class="relative">
-                        <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="City Loft" class="w-full h-48 object-cover">
-                        <button class="absolute top-4 right-4 text-2xl text-gray-300 hover:text-primary">
-                            <i class="far fa-heart"></i>
-                        </button>
-                        <span class="absolute top-4 left-4 bg-white px-3 py-1 rounded-full text-sm font-medium">$180/night</span>
-                    </div>
-                    <div class="p-5">
-                        <h3 class="font-bold text-lg mb-1">Urban Loft in City Center</h3>
-                        <p class="text-gray-600 mb-3"><i class="fas fa-map-marker-alt text-primary mr-2"></i>New York, USA</p>
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <i class="fas fa-star text-yellow-400 mr-1"></i>
-                                <span class="font-medium">4.6</span>
-                                <span class="text-gray-500 ml-1">(203 reviews)</span>
-                            </div>
-                            <span class="text-sm bg-gray-100 px-2 py-1 rounded"><i class="fas fa-user-friends mr-1"></i> 3 guests</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <footer class="bg-gray-900 text-white py-12 px-6">
         <div class="container mx-auto">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div>
-                    <a href="#" class="flex items-center space-x-2 mb-6">
+                    <a href="index.php" class="flex items-center space-x-2 mb-6">
                         <i class="fas fa-home text-3xl text-primary"></i>
                         <span class="text-2xl font-bold">Stay<span class="text-primary">Ease</span></span>
                     </a>
@@ -243,7 +340,7 @@
                 <div>
                     <h4 class="text-lg font-bold mb-6">Explore</h4>
                     <ul class="space-y-3 text-gray-400">
-                        <li><a href="#" class="hover:text-white transition">Popular Destinations</a></li>
+                        <li><a href="index.php?search=1" class="hover:text-white transition">Popular Destinations</a></li>
                         <li><a href="#" class="hover:text-white transition">Luxury Rentals</a></li>
                         <li><a href="#" class="hover:text-white transition">Budget Stays</a></li>
                         <li><a href="#" class="hover:text-white transition">Experiences</a></li>
@@ -253,7 +350,7 @@
                 <div>
                     <h4 class="text-lg font-bold mb-6">Hosting</h4>
                     <ul class="space-y-3 text-gray-400">
-                        <li><a href="#" class="hover:text-white transition">Become a Host</a></li>
+                        <li><a href="auth/signup.php?role=hote" class="hover:text-white transition">Become a Host</a></li>
                         <li><a href="#" class="hover:text-white transition">Host Resources</a></li>
                         <li><a href="#" class="hover:text-white transition">Safety Standards</a></li>
                         <li><a href="#" class="hover:text-white transition">Host Protection</a></li>
@@ -296,30 +393,13 @@
             const menu = document.getElementById('mobileMenu');
             menu.classList.toggle('hidden');
         });
-        const roles = ['Guest', 'Traveler', 'Host', 'Administrator'];
-        let currentRoleIndex = 0;
-        const roleElement = document.getElementById('userRole');
-        
-        const favButtons = document.querySelectorAll('.fa-heart');
-        favButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                if (this.classList.contains('far')) {
-                    this.classList.remove('far');
-                    this.classList.add('fas', 'text-primary');
-                } else {
-                    this.classList.remove('fas', 'text-primary');
-                    this.classList.add('far');
-                }
-            });
-        });
 
-        document.querySelector('button[class*="bg-primary"]').addEventListener('click', function() {
-            const location = document.querySelector('input[type="text"]').value;
-            if (location) {
-                alert(`Searching for rentals in ${location}...`);
-            } else {
-                alert('Please enter a location to search for rentals.');
-            }
+        const today = new Date().toISOString().split('T')[0];
+        document.querySelector('input[name="start_date"]').min = today;
+        document.querySelector('input[name="end_date"]').min = today;
+
+        document.querySelector('input[name="start_date"]').addEventListener('change', function() {
+            document.querySelector('input[name="end_date"]').min = this.value;
         });
     </script>
 </body>

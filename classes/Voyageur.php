@@ -7,3 +7,4 @@ class Voyageur extends User {
         $this->signup();
     }
 }
+?>

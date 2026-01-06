@@ -7,3 +7,4 @@ class Admin extends User {
         $this->signup();
     }
 }
+?>
