@@ -35,7 +35,7 @@ class Favorites {
 
     public function getFavorites(int $userId): array {
         try {
-            $sql = "SELECT f.*, l.title, l.imageUrl, l.price, l.average_rating, u.first_name as hote_first_name, u.last_name as hote_last_name 
+            $sql = "SELECT f.*, l.title, l.imageUrl, l.price, l.average_rating, l.capacity, u.first_name as hote_first_name, u.last_name as hote_last_name ,u.location
                     FROM favorites f 
                     JOIN logement l ON f.logement_id = l.logement_id 
                     JOIN users u ON l.hote_id = u.user_id 
