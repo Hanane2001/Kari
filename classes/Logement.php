@@ -53,7 +53,7 @@ class Logement {
         try {
             $db = Database::getInstance()->getConnection();
             
-            $sql = "SELECT l.*, u.first_name, u.last_name 
+            $sql = "SELECT l.*, u.first_name, u.last_name, u.location
                     FROM logement l 
                     JOIN users u ON l.hote_id = u.user_id 
                     WHERE l.is_active = TRUE 
@@ -113,7 +113,7 @@ class Logement {
     public static function getById(int $logementId): ?array {
         try {
             $db = Database::getInstance()->getConnection();
-            $sql = "SELECT l.*, u.first_name, u.last_name, u.phone, u.email 
+            $sql = "SELECT l.*, u.first_name, u.last_name, u.phone, u.email, u.location
                     FROM logement l 
                     JOIN users u ON l.hote_id = u.user_id 
                     WHERE l.logement_id = :logement_id AND l.is_active = TRUE";

@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } elseif ($_SESSION['user_role'] === 'admin') {
                     header("Location: dashboardAdmin.php");
                 } else {
-                    header("Location: dashboard.php");
+                    header("Location: dashboardVoyageur.php");
                 }
                 exit();
             } else {
@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <i class="fas fa-arrow-left mr-2"></i> Back to Admin Dashboard
                         </a>
                     <?php else: ?>
-                        <a href="dashboard.php" class="inline-flex items-center font-medium text-gray-500 hover:text-gray-700">
+                        <a href="dashboardVoyageur.php" class="inline-flex items-center font-medium text-gray-500 hover:text-gray-700">
                             <i class="fas fa-arrow-left mr-2"></i> Back to Traveler Dashboard
                         </a>
                     <?php endif; ?>

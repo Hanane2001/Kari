@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search'])) {
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <div class="hidden md:flex items-center space-x-4">
                         <span class="px-3 py-1 bg-gray-100 rounded-full text-sm">
-                            <i class="fas fa-user mr-1"></i> 
+                            <a class="cursor-pointer" href="dashboard/edit_profile.php"><i class="fas fa-user mr-1"></i></a> 
                             <?= htmlspecialchars($_SESSION['user_name']) ?>
                         </span>
                         <a href="auth/logout.php" class="px-4 py-2 bg-red-600 text-white font-medium rounded-full hover:bg-red-400 transition">Logout</a>
@@ -239,7 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search'])) {
                             </a>
                             <p class="text-gray-600 mb-3 text-sm">
                                 <i class="fas fa-map-marker-alt text-primary mr-2"></i>
-                                <?// htmlspecialchars($logement['location']) ?>
+                                <?= htmlspecialchars($logement['location']) ?>
                             </p>
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">

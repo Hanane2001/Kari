@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['favorite_action'])) {
                 <span class="text-xl font-bold">Stay<span class="text-red-500">Ease</span></span>
             </a>
             <div class="flex items-center space-x-4">
-                <a href="index.php" class="text-gray-700 hover:text-red-500">Back to Rentals</a>
+                <a href="index.php" class="px-4 py-2 text-gray-700 bg-red-600 rounded text-white hover:bg-red-400">Back to Rentals</a>
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <span class="text-gray-700">Hi, <?= htmlspecialchars($_SESSION['user_name']) ?></span>
                     <a href="auth/logout.php" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Logout</a>
@@ -150,14 +150,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['favorite_action'])) {
                                 <?php if ($averageRating > 0): ?>
                                     <i class="fas fa-star text-yellow-400 mr-1"></i>
                                     <span class="font-medium"><?= number_format($averageRating, 1) ?></span>
-                                    <span class="text-gray-500 ml-1">(<?= count($reviews) ?> reviews)</span>
+                                    <span class="text-gray-500 ml-1">(<?// count($reviews) ?> reviews)</span>
                                 <?php else: ?>
                                     <span class="text-gray-500">No reviews yet</span>
                                 <?php endif; ?>
                             </div>
                             <div class="flex items-center">
                                 <i class="fas fa-map-marker-alt text-gray-400 mr-2"></i>
-                                <span><?// htmlspecialchars($logement['location']) ?></span>
+                                <span><?= htmlspecialchars($logement['location']) ?></span>
                             </div>
                             <div class="flex items-center">
                                 <i class="fas fa-user-friends text-gray-400 mr-2"></i>
@@ -301,7 +301,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['favorite_action'])) {
         if (!empty($similarLogements)):
         ?>
         <div class="mt-12">
-            <h2 class="text-2xl font-bold mb-6">Similar properties in <?// htmlspecialchars($logement['location']) ?></h2>
+            <h2 class="text-2xl font-bold mb-6">Similar properties in <?= htmlspecialchars($logement['location']) ?></h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <?php foreach ($similarLogements as $similar): 
                     if ($similar['logement_id'] == $logementId) continue;

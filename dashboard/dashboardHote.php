@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_logement'])) {
     try {
         $title = $_POST['title'];
         $description = $_POST['description'];
-        $imageUrl = $_POST['image_url'] ?? 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
+        $imageUrl = $_POST['image_url'] ?? 'https://images.unsplash.com/photo-1568605114967-8130f3a36994';
         $type = LogementType::from($_POST['type']);
         $price = (float)$_POST['price'];
         $capacity = (int)$_POST['capacity'];

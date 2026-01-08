@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/Database.php';
+require_once __DIR__.'/../services/ReservationEmailNotification.php';
 
 enum ReservationStatus: string {
     case PENDING = 'pending';
@@ -46,7 +47,6 @@ class Reservation {
             
             $stmt = $this->db->prepare($sql);
             $result = $stmt->execute([':logement_id' => $this->logementId,':voyageur_id' => $this->voyageurId,':start_date' => $this->startDate->format('Y-m-d'),':end_date' => $this->endDate->format('Y-m-d'),':nbr_guests' => $this->nbrGuests,':total_price' => $this->totalPrice,':status' => $this->status->value]);
-
             if ($result) {
                 $this->id = (int) $this->db->lastInsertId();
                 $this->notifyHote();
@@ -65,9 +65,7 @@ class Reservation {
             $sql = "SELECT COUNT(*) as count FROM reservation 
                     WHERE logement_id = :logement_id 
                     AND status NOT IN ('cancelled', 'completed')
-                    AND (
-                        (start_date <= :end_date AND end_date >= :start_date)
-                    )";
+                    AND ((start_date <= :end_date AND end_date >= :start_date))";
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute([':logement_id' => $this->logementId,':start_date' => $this->startDate->format('Y-m-d'),':end_date' => $this->endDate->format('Y-m-d')]);
@@ -80,40 +78,43 @@ class Reservation {
         }
     }
 
-    private function notifyHote(): void {
+    private function notifyHote(): void{
         try {
-            $sql = "SELECT u.email FROM logement l 
+            $sql = "SELECT u.email 
+                    FROM logement l 
                     JOIN users u ON l.hote_id = u.user_id 
                     WHERE l.logement_id = :logement_id";
-            
+
             $stmt = $this->db->prepare($sql);
             $stmt->execute([':logement_id' => $this->logementId]);
             $hote = $stmt->fetch();
 
             if ($hote) {
-                $notificationSql = "INSERT INTO notifications (user_id, type, title, message) VALUES (:user_id, 'reservation', 'Nouvelle réservation', :message)";
-                
-                $notificationStmt = $this->db->prepare($notificationSql);
-                $message = "New booking for your Logement #{$this->logementId}";
-                $notificationStmt->execute([':user_id' => $this->getHoteId(),':message' => $message]);
-
-                // Ici vous pourriez aussi envoyer un email 
+                ReservationEmailNotification::reservationCreated($hote['email'],$this->logementId);
             }
         } catch (PDOException $e) {
-            error_log("Reservation notifyHote error: " . $e->getMessage());
+            error_log("notifyHote error: " . $e->getMessage());
         }
     }
 
-    public function cancel(int $userId, string $reason = ""): bool {
+    public function cancel(int $userId, string $reason = ""): bool{
         try {
             $sql = "UPDATE reservation 
                     SET status = 'cancelled', cancel_reason = :reason, cancel_user_id = :cancel_user_id 
                     WHERE reservation_id = :reservation_id";
-            
+
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute([':reservation_id' => $this->id,':reason' => $reason,':cancel_user_id' => $userId]);
+            $result = $stmt->execute([':reservation_id' => $this->id,':reason' => $reason,':cancel_user_id' => $userId]);
+
+            if ($result) {
+                $this->status = ReservationStatus::CANCELLED;
+                $hoteEmail = $this->getHoteEmail();
+                ReservationEmailNotification::reservationCancelled($hoteEmail, $this->id, $reason);
+            }
+
+            return $result;
         } catch (PDOException $e) {
-            error_log("Reservation cancel error: " . $e->getMessage());
+            error_log("cancel error: " . $e->getMessage());
             return false;
         }
     }
@@ -138,6 +139,27 @@ class Reservation {
         }
     }
 
+    private function getHoteEmail(): string {
+        $sql = "SELECT u.email
+                FROM logement l
+                JOIN users u ON l.hote_id = u.user_id
+                WHERE l.logement_id = :logement_id";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':logement_id' => $this->logementId]);
+        $result = $stmt->fetch();
+
+        return $result['email'] ?? '';
+    }
+
+    private function getVoyageurEmail(): string{
+        $sql = "SELECT email FROM users WHERE user_id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':id' => $this->voyageurId]);
+        $result = $stmt->fetch();
+        return $result['email'] ?? '';
+    }
+
     private function getHoteId(): int {
         $sql = "SELECT hote_id FROM logement WHERE logement_id = :logement_id";
         $stmt = $this->db->prepare($sql);
@@ -149,5 +171,6 @@ class Reservation {
     public function getId(): int { return $this->id; }
     public function getTotalPrice(): float { return $this->totalPrice; }
     public function getStatus(): ReservationStatus { return $this->status; }
+    public function setId(int $id): void {$this->id = $id;}
 }
 ?>

@@ -13,6 +13,21 @@ require_once __DIR__ . '/../classes/User.php';
 $userId = $_SESSION['user_id'];
 $user = User::getById($userId);
 $reservations = Reservation::getByVoyageur($userId);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reservation_id'], $_POST['reason_cancel'])) {
+    $reservationId = (int) $_POST['reservation_id'];
+    $reasonCancel  = trim($_POST['reason_cancel']);
+    foreach ($reservations as $reservation) {
+        if ($reservation['reservation_id'] == $reservationId) {
+            $res = new Reservation((int)$reservation['logement_id'], (int)$reservation['voyageur_id'], new DateTime($reservation['start_date']), new DateTime($reservation['end_date']), (int)$reservation['nbr_guests'], (float)$reservation['total_price']);
+            $res->setId($reservationId);
+            $res->cancel($userId, $reasonCancel);
+            header("Location: dashboardVoyageur.php");
+            exit;
+        }
+    }
+}
+
 $favorites = new Favorites();
 $favoriteList = $favorites->getFavorites($userId);
 ?>
@@ -107,7 +122,12 @@ $favoriteList = $favorites->getFavorites($userId);
                                 </span>
                                 <div class="mt-2 space-x-2">
                                     <?php if ($reservation['status'] === 'pending' || $reservation['status'] === 'confirmed'): ?>
-                                        <button class="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600">Cancel</button>
+                                        <form method="POST" class="mt-2">
+                                            <input type="hidden" name="reservation_id" value="<?= $reservation['reservation_id'] ?>">
+                                            <input type="text" name="reason_cancel" class="hidden border rounded px-2 py-1 mt-2 w-full" id="reason_cancel_<?= $reservation['reservation_id'] ?>" placeholder="Reason for cancellation" required>
+                                            <button type="button" class="cancel-btn px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 mt-2" data-id="<?= $reservation['reservation_id'] ?>">Cancel</button>
+                                            <button type="submit" class="hidden submit-btn px-3 py-1 bg-gray-700 text-white rounded text-sm mt-2" id="submit_<?= $reservation['reservation_id'] ?>">Confirm Cancel</button>
+                                        </form>
                                     <?php endif; ?>
                                     <?php if ($reservation['status'] === 'completed'): ?>
                                         <button class="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600">Leave Review</button>
@@ -120,7 +140,7 @@ $favoriteList = $favorites->getFavorites($userId);
                 </div>
             <?php endif; ?>
         </div>
-        
+
         <div class="bg-white rounded-xl shadow-md p-6">
             <h2 class="text-xl font-bold mb-4">My Favorites (<?= count($favoriteList) ?>)</h2>
             
@@ -158,4 +178,16 @@ $favoriteList = $favorites->getFavorites($userId);
         </div>
     </div>
 </body>
+<script>
+document.querySelectorAll('.cancel-btn').forEach(button => {
+    button.addEventListener('click', function () {
+        const id = this.dataset.id;
+
+        document.getElementById('reason_cancel_' + id).classList.remove('hidden');
+        document.getElementById('submit_' + id).classList.remove('hidden');
+
+        this.classList.add('hidden');
+    });
+});
+</script>
 </html>
