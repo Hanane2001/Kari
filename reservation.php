@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/config/Database.php';
 session_start();
 
 if (!isset($_SESSION['user_id'])) {

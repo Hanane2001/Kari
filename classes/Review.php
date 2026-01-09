@@ -71,7 +71,7 @@ class Review {
     public static function getByLogement(int $logementId): array {
         try {
             $db = Database::getInstance()->getConnection();
-            $sql = "SELECT r.*, u.first_name, u.last_name 
+            $sql = "SELECT r.*, u.first_name, u.last_name, u.email 
                     FROM review r 
                     JOIN users u ON r.voyageur_id = u.user_id 
                     WHERE r.logement_id = :logement_id AND r.is_visible = TRUE 

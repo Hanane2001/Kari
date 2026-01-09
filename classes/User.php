@@ -87,21 +87,18 @@ class User {
         }
     }
 
-    public static function isActive(int $userId): bool | null {
+    public static function isActive(int $userId): bool {
         try {
             $db = Database::getInstance()->getConnection();
             $sql = "SELECT * FROM users WHERE user_id = :user_id";
             $stmt = $db->prepare($sql);
             $stmt->execute([':user_id' => $userId]);
             
-            $user = $stmt->fetch();
-            if($user['is_active'] === 0){
-                return false;
-            }
-            return true;
+            $result = $stmt->fetch();
+            return $result && $result['is_active'] == 1;
         } catch (PDOException $e) {
-            error_log("User getById error: " . $e->getMessage());
-            return null;
+            error_log("User isActive error: " . $e->getMessage());
+            return false;
         }
     }
 

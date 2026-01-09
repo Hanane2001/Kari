@@ -12,15 +12,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($email) || empty($password)) {
         $errors[] = "Email and password are required";
     }
-    
+
     if (empty($errors)) {
         $user = User::login($email, $password);
-        $res = User::isActive($user['user_id']);
-        if($res === false){
-            echo "Error You Don't have the permission"; 
-        }
-        else{
-            if ($user) {
+        
+        if ($user) {
+            $isActive = User::isActive($user['user_id']);
+            if (!$isActive) {
+                $errors[] = "Your account is not active. Please contact support.";
+            } else {
                 switch ($user['role']) {
                     case 'admin':
                         header("Location: ../dashboard/dashboardAdmin.php");
@@ -32,11 +32,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         header("Location: ../dashboard/dashboardVoyageur.php");
                 }
                 exit();
-            } else {
-                $errors[] = "Invalid email or password";
             }
+        } else {
+            $errors[] = "Invalid email or password";
         }
-    }     
+    }
 }
 ?>
 <!DOCTYPE html>
