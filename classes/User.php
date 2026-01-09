@@ -87,6 +87,24 @@ class User {
         }
     }
 
+    public static function isActive(int $userId): bool | null {
+        try {
+            $db = Database::getInstance()->getConnection();
+            $sql = "SELECT * FROM users WHERE user_id = :user_id";
+            $stmt = $db->prepare($sql);
+            $stmt->execute([':user_id' => $userId]);
+            
+            $user = $stmt->fetch();
+            if($user['is_active'] === 0){
+                return false;
+            }
+            return true;
+        } catch (PDOException $e) {
+            error_log("User getById error: " . $e->getMessage());
+            return null;
+        }
+    }
+
     public static function updateProfile(int $userId, array $data): bool {
         try {
             $db = Database::getInstance()->getConnection();

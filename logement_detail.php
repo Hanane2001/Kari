@@ -150,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['favorite_action'])) {
                                 <?php if ($averageRating > 0): ?>
                                     <i class="fas fa-star text-yellow-400 mr-1"></i>
                                     <span class="font-medium"><?= number_format($averageRating, 1) ?></span>
-                                    <span class="text-gray-500 ml-1">(<?// count($reviews) ?> reviews)</span>
+                                    <span class="text-gray-500 ml-1">(<?= count($reviews) ?> reviews)</span>
                                 <?php else: ?>
                                     <span class="text-gray-500">No reviews yet</span>
                                 <?php endif; ?>

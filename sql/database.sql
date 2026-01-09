@@ -119,3 +119,8 @@ CREATE TABLE admin_logs (
 
 -- admin (mot de passe: admin123)
 INSERT INTO users (first_name, last_name, email, phone, location, password, role) VALUES ('hanane', 'taouili', 'hanan2122hanan@gmail.com', '0609976685', 'safi maroc', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
+
+-- INSERT INTO review (logement_id, voyageur_id, reservation_id, rating, comment) VALUES
+-- (1, 3, 1, 5, 'Amazing place! Very clean and comfortable.'),
+-- (1, 4, 2, 4, 'Good location, nice host. Would stay again.'),
+-- (2, 3, 3, 3, 'Average experience. Could be cleaner.');

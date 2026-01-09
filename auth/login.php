@@ -15,23 +15,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if (empty($errors)) {
         $user = User::login($email, $password);
-        
-        if ($user) {
-            switch ($user['role']) {
-                case 'admin':
-                    header("Location: ../dashboard/dashboardAdmin.php");
-                    break;
-                case 'hote':
-                    header("Location: ../dashboard/dashboardHote.php");
-                    break;
-                default:
-                    header("Location: ../dashboard/dashboardVoyageur.php");
-            }
-            exit();
-        } else {
-            $errors[] = "Invalid email or password";
+        $res = User::isActive($user['user_id']);
+        if($res === false){
+            echo "Error You Don't have the permission"; 
         }
-    }
+        else{
+            if ($user) {
+                switch ($user['role']) {
+                    case 'admin':
+                        header("Location: ../dashboard/dashboardAdmin.php");
+                        break;
+                    case 'hote':
+                        header("Location: ../dashboard/dashboardHote.php");
+                        break;
+                    default:
+                        header("Location: ../dashboard/dashboardVoyageur.php");
+                }
+                exit();
+            } else {
+                $errors[] = "Invalid email or password";
+            }
+        }
+    }     
 }
 ?>
 <!DOCTYPE html>
