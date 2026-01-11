@@ -19,7 +19,7 @@ if (!$logement) {
 }
 
 $reviews = Review::getByLogement($logementId);
-$averageRating = $logement['average_rating'];
+$averageRating = $logement['average_rating'] ?? 0;
 
 $isFavorite = false;
 if (isset($_SESSION['user_id'])) {
@@ -45,6 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_now'])) {
             
             if ($guests > $logement['capacity']) {
                 $bookingError = "Number of guests exceeds property capacity ({$logement['capacity']}).";
+            } elseif ($startDate >= $endDate) {
+                $bookingError = "Check-out date must be after check-in date.";
             } else {
                 $nights = $startDate->diff($endDate)->days;
                 $totalPrice = $nights * $logement['price'];
@@ -53,6 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_now'])) {
                 
                 if ($reservation->save()) {
                     $bookingSuccess = "Reservation successful! Total: $" . number_format($totalPrice, 2);
+                    $_POST = array();
                 } else {
                     $bookingError = "Failed to create reservation. Please try again.";
                 }
@@ -80,13 +83,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['favorite_action'])) {
         }
     }
 }
+
+$today = date('Y-m-d');
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($logement['title']) ?> - StayEase</title>
+    <title><?= htmlspecialchars($logement['title'] ?? 'StayEase') ?> - StayEase</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -112,12 +117,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['favorite_action'])) {
     <div class="container mx-auto p-4">
         <?php if ($bookingError): ?>
             <div class="mb-6 p-4 bg-red-100 border border-red-300 text-red-700 rounded">
+                <i class="fas fa-exclamation-circle mr-2"></i>
                 <?= htmlspecialchars($bookingError) ?>
             </div>
         <?php endif; ?>
         
         <?php if ($bookingSuccess): ?>
             <div class="mb-6 p-4 bg-green-100 border border-green-300 text-green-700 rounded">
+                <i class="fas fa-check-circle mr-2"></i>
                 <?= htmlspecialchars($bookingSuccess) ?>
                 <a href="dashboard/dashboardVoyageur.php" class="ml-4 text-green-800 font-medium hover:underline">View my reservations</a>
             </div>
@@ -125,17 +132,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['favorite_action'])) {
 
         <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
             <div class="relative h-96">
-                <img src="<?= htmlspecialchars($logement['imageUrl']) ?>" alt="<?= htmlspecialchars($logement['title']) ?>" class="w-full h-full object-cover">
+                <img src="<?= htmlspecialchars($logement['imageUrl'] ?? 'https://images.unsplash.com/photo-1568605114967-8130f3a36994') ?>" 
+                     alt="<?= htmlspecialchars($logement['title'] ?? 'Accommodation') ?>" 
+                     class="w-full h-full object-cover">
                 <div class="absolute top-4 right-4">
                     <form method="POST">
                         <input type="hidden" name="favorite_action" value="<?= $isFavorite ? 'remove' : 'add' ?>">
-                        <button type="submit" class="text-3xl <?= $isFavorite ? 'text-red-500' : 'text-white' ?> hover:text-red-400">
+                        <button type="submit" class="text-3xl <?= $isFavorite ? 'text-red-500' : 'text-white' ?> hover:text-red-400 transition-colors">
                             <i class="<?= $isFavorite ? 'fas' : 'far' ?> fa-heart"></i>
                         </button>
                     </form>
                 </div>
-                <div class="absolute bottom-4 left-4 bg-white px-4 py-2 rounded-lg shadow">
-                    <span class="text-2xl font-bold text-red-600">$<?= number_format($logement['price'], 2) ?></span>
+                <div class="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow">
+                    <span class="text-2xl font-bold text-red-600">$<?= number_format($logement['price'] ?? 0, 2) ?></span>
                     <span class="text-gray-600"> / night</span>
                 </div>
             </div>
@@ -143,9 +152,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['favorite_action'])) {
             <div class="p-8">
                 <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8">
                     <div class="lg:w-2/3">
-                        <h1 class="text-3xl font-bold mb-4"><?= htmlspecialchars($logement['title']) ?></h1>
+                        <h1 class="text-3xl font-bold mb-4"><?= htmlspecialchars($logement['title'] ?? 'Untitled') ?></h1>
                         
-                        <div class="flex items-center space-x-6 mb-6">
+                        <div class="flex flex-wrap items-center gap-4 mb-6">
                             <div class="flex items-center">
                                 <?php if ($averageRating > 0): ?>
                                     <i class="fas fa-star text-yellow-400 mr-1"></i>
@@ -157,21 +166,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['favorite_action'])) {
                             </div>
                             <div class="flex items-center">
                                 <i class="fas fa-map-marker-alt text-gray-400 mr-2"></i>
-                                <span><?= htmlspecialchars($logement['location']) ?></span>
+                                <span><?= htmlspecialchars($logement['location'] ?? 'Unknown location') ?></span>
                             </div>
                             <div class="flex items-center">
                                 <i class="fas fa-user-friends text-gray-400 mr-2"></i>
-                                <span>Up to <?= $logement['capacity'] ?> guests</span>
+                                <span>Up to <?= $logement['capacity'] ?? 1 ?> guests</span>
                             </div>
                             <div class="flex items-center">
                                 <i class="fas fa-home text-gray-400 mr-2"></i>
-                                <span><?= ucfirst($logement['type']) ?></span>
+                                <span><?= ucfirst($logement['type'] ?? 'apartment') ?></span>
                             </div>
                         </div>
 
                         <div class="mb-8">
                             <h2 class="text-xl font-bold mb-3">About this place</h2>
-                            <p class="text-gray-700 leading-relaxed"><?= nl2br(htmlspecialchars($logement['description'])) ?></p>
+                            <p class="text-gray-700 leading-relaxed"><?= nl2br(htmlspecialchars($logement['description'] ?? 'No description available.')) ?></p>
                         </div>
 
                         <div class="border-t pt-6">
@@ -181,8 +190,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['favorite_action'])) {
                                     <i class="fas fa-user"></i>
                                 </div>
                                 <div>
-                                    <h3 class="font-bold"><?= htmlspecialchars($logement['first_name'] . ' ' . $logement['last_name']) ?></h3>
-                                    <p class="text-gray-600">Host since <?= date('Y', strtotime($logement['created_at'])) ?></p>
+                                    <h3 class="font-bold"><?= htmlspecialchars(($logement['first_name'] ?? '') . ' ' . ($logement['last_name'] ?? '')) ?></h3>
+                                    <p class="text-gray-600">Host since <?= date('Y', strtotime($logement['created_at'] ?? date('Y-m-d'))) ?></p>
                                     <?php if (!empty($logement['phone'])): ?>
                                         <p class="text-gray-600 mt-1">
                                             <i class="fas fa-phone mr-2"></i><?= htmlspecialchars($logement['phone']) ?>
@@ -194,28 +203,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['favorite_action'])) {
 
                         <?php if (!empty($reviews)): ?>
                         <div class="border-t pt-6 mt-6">
-                            <h2 class="text-xl font-bold mb-4">Reviews</h2>
+                            <h2 class="text-xl font-bold mb-4">Reviews (<?= count($reviews) ?>)</h2>
                             <div class="space-y-6">
                                 <?php foreach ($reviews as $review): ?>
-                                <div class="border-b pb-6">
+                                <div class="border-b pb-6 last:border-b-0">
                                     <div class="flex items-center mb-3">
                                         <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
                                             <i class="fas fa-user text-gray-500"></i>
                                         </div>
                                         <div>
-                                            <h4 class="font-bold"><?= htmlspecialchars($review['first_name'] . ' ' . $review['last_name']) ?></h4>
+                                            <h4 class="font-bold"><?= htmlspecialchars(($review['first_name'] ?? 'Anonymous') . ' ' . ($review['last_name'] ?? '')) ?></h4>
                                             <div class="flex items-center">
                                                 <?php for ($i = 1; $i <= 5; $i++): ?>
-                                                    <i class="fas fa-star <?= $i <= $review['rating'] ? 'text-yellow-400' : 'text-gray-300' ?>"></i>
+                                                    <i class="fas fa-star <?= $i <= ($review['rating'] ?? 0) ? 'text-yellow-400' : 'text-gray-300' ?> text-sm"></i>
                                                 <?php endfor; ?>
                                                 <span class="text-gray-500 text-sm ml-2">
-                                                    <?= date('M Y', strtotime($review['created_at'])) ?>
+                                                    <?= date('M Y', strtotime($review['created_at'] ?? date('Y-m-d'))) ?>
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
                                     <?php if (!empty($review['comment'])): ?>
-                                        <p class="text-gray-700"><?= nl2br(htmlspecialchars($review['comment'])) ?></p>
+                                        <p class="text-gray-700 mt-2"><?= nl2br(htmlspecialchars($review['comment'])) ?></p>
                                     <?php endif; ?>
                                 </div>
                                 <?php endforeach; ?>
@@ -233,33 +242,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['favorite_action'])) {
                                         <div>
                                             <label class="block text-sm font-medium mb-1">Check-in</label>
                                             <input type="date" name="start_date" required 
-                                                   min="<?= date('Y-m-d') ?>" 
-                                                   class="w-full p-3 border rounded-lg">
+                                                   min="<?= $today ?>" 
+                                                   value="<?= $_POST['start_date'] ?? '' ?>"
+                                                   class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium mb-1">Check-out</label>
                                             <input type="date" name="end_date" required 
-                                                   min="<?= date('Y-m-d', strtotime('+1 day')) ?>" 
-                                                   class="w-full p-3 border rounded-lg">
+                                                   min="<?= $today ?>" 
+                                                   value="<?= $_POST['end_date'] ?? '' ?>"
+                                                   class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
                                         </div>
                                     </div>
                                     
                                     <div>
                                         <label class="block text-sm font-medium mb-1">Guests</label>
-                                        <select name="guests" required class="w-full p-3 border rounded-lg">
-                                            <?php for ($i = 1; $i <= $logement['capacity']; $i++): ?>
-                                                <option value="<?= $i ?>"><?= $i ?> guest<?= $i > 1 ? 's' : '' ?></option>
+                                        <select name="guests" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                                            <?php for ($i = 1; $i <= ($logement['capacity'] ?? 1); $i++): ?>
+                                                <option value="<?= $i ?>" <?= isset($_POST['guests']) && $_POST['guests'] == $i ? 'selected' : '' ?>>
+                                                    <?= $i ?> guest<?= $i > 1 ? 's' : '' ?>
+                                                </option>
                                             <?php endfor; ?>
                                         </select>
                                     </div>
                                     
                                     <div class="pt-4 border-t">
                                         <div class="flex justify-between mb-2">
-                                            <span class="text-gray-600">$<?= number_format($logement['price'], 2) ?> x <span id="nights">0</span> nights</span>
+                                            <span class="text-gray-600">$<?= number_format($logement['price'] ?? 0, 2) ?> x <span id="nights">0</span> nights</span>
                                             <span id="subtotal">$0.00</span>
                                         </div>
                                         <div class="flex justify-between mb-2">
-                                            <span class="text-gray-600">Service fee</span>
+                                            <span class="text-gray-600">Service fee (12%)</span>
                                             <span id="service_fee">$0.00</span>
                                         </div>
                                         <div class="flex justify-between font-bold text-lg pt-4 border-t">
@@ -270,25 +283,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['favorite_action'])) {
                                     
                                     <?php if (isset($_SESSION['user_id'])): ?>
                                         <?php if ($_SESSION['user_role'] === 'voyageur'): ?>
-                                            <button type="submit" name="book_now" class="w-full mt-4 py-4 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600">
-                                                Book Now
+                                            <button type="submit" name="book_now" class="w-full mt-4 py-4 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors">
+                                                <i class="fas fa-calendar-check mr-2"></i> Book Now
                                             </button>
                                         <?php else: ?>
                                             <button type="button" disabled class="w-full mt-4 py-4 bg-gray-400 text-white font-bold rounded-xl cursor-not-allowed">
-                                                Only travelers can book
+                                                <i class="fas fa-ban mr-2"></i> Only travelers can book
                                             </button>
                                         <?php endif; ?>
                                     <?php else: ?>
                                         <a href="auth/login.php?redirect=logement_detail.php?id=<?= $logementId ?>" 
-                                           class="block w-full mt-4 py-4 bg-red-500 text-white font-bold text-center rounded-xl hover:bg-red-600">
-                                            Login to Book
+                                           class="block w-full mt-4 py-4 bg-red-500 text-white font-bold text-center rounded-xl hover:bg-red-600 transition-colors">
+                                            <i class="fas fa-sign-in-alt mr-2"></i> Login to Book
                                         </a>
                                     <?php endif; ?>
                                 </div>
                             </form>
                             
                             <div class="mt-6 text-center text-gray-500 text-sm">
-                                <p>You won't be charged yet</p>
+                                <p><i class="fas fa-shield-alt mr-1"></i> You won't be charged yet</p>
                             </div>
                         </div>
                     </div>
@@ -297,26 +310,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['favorite_action'])) {
         </div>
 
         <?php
-        $similarLogements = Logement::getAllAvailable($logement['location'], null, $logement['price'] * 1.5, null, null, null, 4, 0);
-        if (!empty($similarLogements)):
+        $similarLogements = Logement::getAllAvailable($logement['location'] ?? '', null, ($logement['price'] ?? 0) * 1.5, null, null, null, 4, 0);
+        if (!empty($similarLogements) && count($similarLogements) > 1):
         ?>
         <div class="mt-12">
-            <h2 class="text-2xl font-bold mb-6">Similar properties in <?= htmlspecialchars($logement['location']) ?></h2>
+            <h2 class="text-2xl font-bold mb-6">Similar properties in <?= htmlspecialchars($logement['location'] ?? 'this area') ?></h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <?php foreach ($similarLogements as $similar): 
                     if ($similar['logement_id'] == $logementId) continue;
                 ?>
-                <a href="logement_detail.php?id=<?= $similar['logement_id'] ?>" class="block">
-                    <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
-                        <img src="<?= htmlspecialchars($similar['imageUrl']) ?>" alt="<?= htmlspecialchars($similar['title']) ?>" class="w-full h-40 object-cover">
+                <a href="logement_detail.php?id=<?= $similar['logement_id'] ?>" class="block group">
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300">
+                        <div class="relative h-40 overflow-hidden">
+                            <img src="<?= htmlspecialchars($similar['imageUrl'] ?? 'https://images.unsplash.com/photo-1568605114967-8130f3a36994') ?>" 
+                                 alt="<?= htmlspecialchars($similar['title'] ?? 'Similar property') ?>" 
+                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        </div>
                         <div class="p-4">
-                            <h3 class="font-bold mb-1"><?= htmlspecialchars($similar['title']) ?></h3>
-                            <p class="text-gray-600 text-sm mb-2"><?= htmlspecialchars($similar['location']) ?></p>
+                            <h3 class="font-bold mb-1 truncate"><?= htmlspecialchars($similar['title'] ?? 'Untitled') ?></h3>
+                            <p class="text-gray-600 text-sm mb-2 truncate"><?= htmlspecialchars($similar['location'] ?? 'Unknown') ?></p>
                             <div class="flex justify-between items-center">
-                                <span class="text-red-600 font-bold">$<?= number_format($similar['price'], 2) ?>/night</span>
-                                <?php if ($similar['average_rating'] > 0): ?>
+                                <span class="text-red-600 font-bold">$<?= number_format($similar['price'] ?? 0, 2) ?>/night</span>
+                                <?php if (($similar['average_rating'] ?? 0) > 0): ?>
                                     <div class="flex items-center">
-                                        <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                        <i class="fas fa-star text-yellow-400 mr-1 text-sm"></i>
                                         <span class="text-sm"><?= number_format($similar['average_rating'], 1) ?></span>
                                     </div>
                                 <?php endif; ?>
@@ -331,39 +348,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['favorite_action'])) {
     </div>
 
     <script>
-        const pricePerNight = <?= $logement['price'] ?>;
+        const pricePerNight = <?= $logement['price'] ?? 0 ?>;
         
         function calculatePrice() {
-            const startDate = new Date(document.querySelector('input[name="start_date"]').value);
-            const endDate = new Date(document.querySelector('input[name="end_date"]').value);
+            const startInput = document.querySelector('input[name="start_date"]');
+            const endInput = document.querySelector('input[name="end_date"]');
+            
+            if (!startInput || !endInput) return;
+            
+            const startDate = new Date(startInput.value);
+            const endDate = new Date(endInput.value);
             
             if (startDate && endDate && startDate < endDate) {
                 const nights = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
                 const subtotal = pricePerNight * nights;
-                const serviceFee = subtotal * 0.12; // 12% service fee
+                const serviceFee = subtotal * 0.12;
                 const total = subtotal + serviceFee;
                 
                 document.getElementById('nights').textContent = nights;
                 document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
                 document.getElementById('service_fee').textContent = '$' + serviceFee.toFixed(2);
                 document.getElementById('total_price').textContent = '$' + total.toFixed(2);
+            } else {
+                document.getElementById('nights').textContent = '0';
+                document.getElementById('subtotal').textContent = '$0.00';
+                document.getElementById('service_fee').textContent = '$0.00';
+                document.getElementById('total_price').textContent = '$0.00';
             }
         }
- 
+
         document.querySelectorAll('input[name="start_date"], input[name="end_date"]').forEach(input => {
             input.addEventListener('change', calculatePrice);
         });
         
-        calculatePrice();
+        document.addEventListener('DOMContentLoaded', function() {
+            const startInput = document.querySelector('input[name="start_date"]');
+            if (startInput.value) {
+                calculatePrice();
+            }
+        });
 
         document.querySelector('input[name="start_date"]').addEventListener('change', function() {
             const endDateInput = document.querySelector('input[name="end_date"]');
-            endDateInput.min = this.value;
-            
-            if (endDateInput.value && endDateInput.value < this.value) {
-                endDateInput.value = '';
+            if (this.value) {
+                const nextDay = new Date(this.value);
+                nextDay.setDate(nextDay.getDate() + 1);
+                endDateInput.min = nextDay.toISOString().split('T')[0];
+                
+                if (endDateInput.value && endDateInput.value <= this.value) {
+                    endDateInput.value = '';
+                }
             }
             
+            calculatePrice();
+        });
+        
+        document.querySelector('input[name="end_date"]').addEventListener('change', function() {
             calculatePrice();
         });
     </script>

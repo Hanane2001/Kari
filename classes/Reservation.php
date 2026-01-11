@@ -38,6 +38,10 @@ class Reservation {
     }
 
     public function save(): bool {
+        if ($this->startDate >= $this->endDate) {
+            throw new Exception("End date must be after start date.");
+        }
+
         if (!$this->checkAvailability()) {
             throw new Exception("Logement is not available for these dates.");
         }
@@ -46,7 +50,7 @@ class Reservation {
             $sql = "INSERT INTO reservation (logement_id, voyageur_id, start_date, end_date, nbr_guests, total_price, status) VALUES (:logement_id, :voyageur_id, :start_date, :end_date, :nbr_guests, :total_price, :status)";
             
             $stmt = $this->db->prepare($sql);
-            $result = $stmt->execute([':logement_id' => $this->logementId,':voyageur_id' => $this->voyageurId,':start_date' => $this->startDate->format('Y-m-d'),':end_date' => $this->endDate->format('Y-m-d'),':nbr_guests' => $this->nbrGuests,':total_price' => $this->totalPrice,':status' => $this->status->value]);
+            $result = $stmt->execute([':logement_id' => $this->logementId, ':voyageur_id' => $this->voyageurId, ':start_date' => $this->startDate->format('Y-m-d'), ':end_date' => $this->endDate->format('Y-m-d'), ':nbr_guests' => $this->nbrGuests, ':total_price' => $this->totalPrice, ':status' => $this->status->value]);
             if ($result) {
                 $this->id = (int) $this->db->lastInsertId();
                 $this->notifyHote();
@@ -78,7 +82,7 @@ class Reservation {
         }
     }
 
-    private function notifyHote(): void{
+    private function notifyHote(): void {
         try {
             $sql = "SELECT u.email 
                     FROM logement l 
@@ -90,14 +94,14 @@ class Reservation {
             $hote = $stmt->fetch();
 
             if ($hote) {
-                ReservationEmailNotification::reservationCreated($hote['email'],$this->logementId);
+                ReservationEmailNotification::reservationCreated($hote['email'], $this->logementId);
             }
         } catch (PDOException $e) {
             error_log("notifyHote error: " . $e->getMessage());
         }
     }
 
-    public function cancel(int $userId, string $reason = ""): bool{
+    public function cancel(int $userId, string $reason = ""): bool {
         try {
             $sql = "UPDATE reservation 
                     SET status = 'cancelled', cancel_reason = :reason, cancel_user_id = :cancel_user_id 
@@ -132,7 +136,7 @@ class Reservation {
             $stmt = $db->prepare($sql);
             $stmt->execute([':voyageur_id' => $voyageurId]);
             
-            return $stmt->fetchAll();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Reservation getByVoyageur error: " . $e->getMessage());
             return [];
@@ -152,7 +156,7 @@ class Reservation {
         return $result['email'] ?? '';
     }
 
-    private function getVoyageurEmail(): string{
+    private function getVoyageurEmail(): string {
         $sql = "SELECT email FROM users WHERE user_id = :id";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':id' => $this->voyageurId]);
@@ -165,12 +169,25 @@ class Reservation {
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':logement_id' => $this->logementId]);
         $result = $stmt->fetch();
-        return $result['hote_id'];
+        return $result['hote_id'] ?? 0;
     }
 
     public function getId(): int { return $this->id; }
     public function getTotalPrice(): float { return $this->totalPrice; }
     public function getStatus(): ReservationStatus { return $this->status; }
     public function setId(int $id): void {$this->id = $id;}
+
+    public static function getById(int $id): ?array {
+        try {
+            $db = Database::getInstance()->getConnection();
+            $sql = "SELECT * FROM reservation WHERE reservation_id = :id";
+            $stmt = $db->prepare($sql);
+            $stmt->execute([':id' => $id]);
+            return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        } catch (PDOException $e) {
+            error_log("Reservation getById error: " . $e->getMessage());
+            return null;
+        }
+    }
 }
 ?>
